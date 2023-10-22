@@ -2,6 +2,8 @@
 /data/AtomicCards.json
 /data/SetList.json
 
+/android/key.properties
+
 # Miscellaneous
 *.class
 *.log
