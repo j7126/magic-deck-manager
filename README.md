@@ -18,7 +18,7 @@ Currently builds are provided for android and linux.
 
 ### Android
 
-Magic Deck Manager is available in my [F-Droid](https://f-droid.org/) repo at [fdroid.j7126.dev](fdroid.j7126.dev). Simply add the repo to your f-droid client and search for the app to download it.
+Magic Deck Manager is available in my [F-Droid](https://f-droid.org/) repo at [fdroid.j7126.dev](https://fdroid.j7126.dev). Simply add the repo to your f-droid client and search for the app to download it.
 
 Alternatly, you can download the apk from the [releases page](https://github.com/j7126/magic-deck-manager/releases) on github.
 
