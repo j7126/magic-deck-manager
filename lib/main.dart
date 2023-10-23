@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:magic_deck_manager/pages/about_page.dart';
 import 'package:magic_deck_manager/pages/settings_page.dart';
 import 'package:magic_deck_manager/service/settings.dart';
 import 'package:magic_deck_manager/service/static_service.dart';
@@ -109,6 +110,12 @@ class _AppState extends State<App> {
         if (settings.name == "/settings") {
           return PageRouteBuilder(
             pageBuilder: (_, __, ___) => ready ? const SettingsPage() : loading,
+            settings: settings,
+          );
+        }
+        if (settings.name == "/about") {
+          return PageRouteBuilder(
+            pageBuilder: (_, __, ___) => ready ? const AboutPage() : loading,
             settings: settings,
           );
         }

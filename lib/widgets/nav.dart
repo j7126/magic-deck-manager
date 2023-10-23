@@ -39,6 +39,12 @@ class NavMenu extends StatelessWidget {
       selectedIcon: Icons.settings,
       route: "/settings",
     ),
+    _Destination(
+      label: "About",
+      icon: Icons.info_outline,
+      selectedIcon: Icons.info,
+      route: "/about",
+    ),
   ];
 
   static List<String> get routes {
