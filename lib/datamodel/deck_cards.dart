@@ -84,9 +84,9 @@ class DeckCards {
   static Map<String, int> getTypes(DeckCards? deck) {
     if (deck == null) return {};
     Map<String, int> result = {};
-    for (var card in deck.cards.values) {
-      for (var type in card.types) {
-        result[type] = (result[type] ?? 0) + 1;
+    for (var card in deck.cards.entries) {
+      for (var type in card.value.types) {
+        result[type] = (result[type] ?? 0) + card.key.qty;
       }
     }
     return result;
