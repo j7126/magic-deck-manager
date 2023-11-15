@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:magic_deck_manager/datamodel/deck.dart';
 import 'package:magic_deck_manager/datamodel/deck_card.dart';
 import 'package:magic_deck_manager/mtgjson/dataModel/card_set.dart';
@@ -56,27 +57,129 @@ class DeckCards {
     }
   }
 
+  DeckCard? getDeckCardByUUID(String uuid) {
+    return deck.cards.firstWhereOrNull((element) => element.uuid == uuid);
+  }
+
+  void addToCardQty(String uuid, int qty) {
+    var dc = getDeckCardByUUID(uuid);
+    if (dc != null) {
+      setQty(dc.uuid, dc.qty + qty);
+    } else {
+      addUUID(uuid);
+      var dc = getDeckCardByUUID(uuid);
+      if (dc != null) {
+        setQty(dc.uuid, dc.qty + qty - 1);
+      }
+    }
+  }
+
   static String getDeckList(DeckCards? deck, DeckListType deckListType, bool lands) {
     if (deck == null) return '';
     var result = '';
     for (var card in deck.cards.entries) {
       if (!lands && card.value.types.contains('Land') && card.value.supertypes.contains('Basic')) continue;
-      if (deckListType == DeckListType.namesAtomic) {
-        result += '${card.key.qty} ${card.value.name}';
-      }
-      if (deckListType == DeckListType.namesSet) {
-        result += '${card.key.qty} ${card.value.name} (${card.value.setCode})';
-      }
-      if (deckListType == DeckListType.namesAtomicNoQty) {
-        result += card.value.name;
-      }
-      if (deckListType == DeckListType.namesSetNoQty) {
-        result += '${card.value.name} (${card.value.setCode})';
-      }
-      if (deckListType == DeckListType.scryfallId) {
-        result += '${card.value.identifiers.scryfallId} (${card.key.qty})';
+      switch (deckListType) {
+        case DeckListType.namesAtomic:
+          result += '${card.key.qty} ${card.value.name}';
+          break;
+        case DeckListType.namesSet:
+          result += '${card.key.qty} ${card.value.name} (${card.value.setCode})';
+          break;
+        case DeckListType.namesAtomicNoQty:
+          result += card.value.name;
+          break;
+        case DeckListType.namesSetNoQty:
+          result += '${card.value.name} (${card.value.setCode})';
+          break;
+        case DeckListType.scryfallId:
+          result += '${card.value.identifiers.scryfallId} (${card.key.qty})';
+          break;
+        default:
       }
       result += '\n';
+    }
+    return result;
+  }
+
+  static Future<List<bool>?> importDeckList(DeckCards? deck, DeckListType deckListType, String list) async {
+    if (deck == null) return null;
+    List<bool> result = [];
+    for (var line in list.split('\n')) {
+      if (line.isEmpty || line == ' ') {
+        result.add(true);
+        continue;
+      }
+      if (deckListType == DeckListType.namesAtomic) {
+        var match = RegExp(r'([0-9]*) (.*)').allMatches(line).firstOrNull;
+        var qty = int.tryParse(match?.group(1) ?? '0');
+        var name = match?.group(2);
+        if (match == null || name == null || qty == null || qty <= 0) {
+          result.add(false);
+          continue;
+        }
+        var card = (await Service.dataLoader.cardsByName(name)).firstOrNull;
+        if (card == null) {
+          result.add(false);
+          continue;
+        }
+        result.add(true);
+        deck.addToCardQty(card.uuid, qty);
+      } else if (deckListType == DeckListType.namesSet) {
+        var match = RegExp(r'([0-9]*) (.*) \((.*)\)').allMatches(line).firstOrNull;
+        var qty = int.tryParse(match?.group(1) ?? '0');
+        var name = match?.group(2);
+        var setCode = match?.group(3);
+        if (match == null || name == null || qty == null || qty <= 0 || setCode == null) {
+          result.add(false);
+          continue;
+        }
+        var card = (await Service.dataLoader.cardsByName(name)).firstWhereOrNull((element) => element.setCode == setCode);
+        if (card == null) {
+          result.add(false);
+          continue;
+        }
+        result.add(true);
+        deck.addToCardQty(card.uuid, qty);
+      } else if (deckListType == DeckListType.namesAtomicNoQty) {
+        var card = (await Service.dataLoader.cardsByName(line)).firstOrNull;
+        if (card == null) {
+          result.add(false);
+          continue;
+        }
+        result.add(true);
+        deck.addUUID(card.uuid);
+      } else if (deckListType == DeckListType.namesSetNoQty) {
+        var match = RegExp(r'(.*) \((.*)\)').allMatches(line).firstOrNull;
+        var name = match?.group(1);
+        var setCode = match?.group(2);
+        if (match == null || name == null || setCode == null) {
+          result.add(false);
+          continue;
+        }
+        var card = (await Service.dataLoader.cardsByName(name)).firstWhereOrNull((element) => element.setCode == setCode);
+        if (card == null) {
+          result.add(false);
+          continue;
+        }
+        result.add(true);
+        deck.addUUID(card.uuid);
+      } else if (deckListType == DeckListType.scryfallId) {
+        var match = RegExp(r'(.*) \(([0-9])\)').allMatches(line).firstOrNull;
+        var id = match?.group(1);
+        var qty = int.tryParse(match?.group(2) ?? '0');
+        if (match == null || id == null || qty == null || qty <= 0) {
+          result.add(false);
+          continue;
+        }
+        var card = (await Service.dataLoader.cardByScryfallId(id));
+        if (card == null) {
+          result.add(false);
+          continue;
+        }
+        result.add(true);
+        deck.addToCardQty(card.uuid, qty);
+      }
     }
     return result;
   }

@@ -330,6 +330,139 @@ class _DeckPageState extends State<DeckPage> {
     setState(() {});
   }
 
+  void importDeck() async {
+    if (deck == null) {
+      return;
+    }
+    var resultFieldController = TextEditingController();
+    var loading = false;
+    List<bool>? result;
+    String value = "";
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, Function setState) {
+            return AlertDialog(
+              title: const Text(
+                'Import deck list',
+                textAlign: TextAlign.center,
+              ),
+              actions: <Widget>[
+                if (loading && result != null && (result?.any((element) => !element) ?? false))
+                  TextButton(
+                    child: const Text('Close'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                if (!loading)
+                  TextButton(
+                    child: const Text('Cancel'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                if (!loading)
+                  FilledButton(
+                    child: const Text('Import'),
+                    onPressed: () {
+                      () async {
+                        loading = true;
+                        setState(() {});
+                        value = resultFieldController.text;
+                        result = await DeckCards.importDeckList(deckCards, selectedDeckListType, resultFieldController.text);
+                      }()
+                          .then((_) {
+                        if (!(result?.any((element) => !element) ?? false)) {
+                          Navigator.of(context).pop();
+                        }
+                        setState(() {});
+                      });
+                    },
+                  ),
+              ],
+              content: loading
+                  ? result != null && (result?.any((element) => !element) ?? false)
+                      ? Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.only(bottom: 8.0),
+                              child: Text(
+                                "The following lines could not be imported.\nCheck the list format?",
+                                style: TextStyle(fontSize: 18),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            for (var (index, line) in value.split('\n').indexed)
+                              if (!(result?[index] ?? true)) Text(line),
+                          ],
+                        )
+                      : const Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircularProgressIndicator(),
+                          ],
+                        )
+                  : Padding(
+                      padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 32.0),
+                      child: Container(
+                        width: double.infinity,
+                        constraints: const BoxConstraints(maxWidth: 400),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            LayoutBuilder(
+                              builder: (BuildContext context, BoxConstraints constraints) => DropdownMenu<DeckListType>(
+                                inputDecorationTheme: const InputDecorationTheme(
+                                  border: OutlineInputBorder(),
+                                ),
+                                width: constraints.maxWidth,
+                                enableSearch: false,
+                                requestFocusOnTap: false,
+                                initialSelection: selectedDeckListType,
+                                label: const Text('List format'),
+                                dropdownMenuEntries: DeckListType.values
+                                    .map(
+                                      (e) => DropdownMenuEntry<DeckListType>(value: e, label: e.label),
+                                    )
+                                    .toList(),
+                                onSelected: (DeckListType? listType) {
+                                  if (listType != null) {
+                                    selectedDeckListType = listType;
+                                    setState(() {});
+                                  }
+                                },
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 16.0),
+                              child: TextFormField(
+                                maxLines: 8,
+                                controller: resultFieldController,
+                                decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  label: Text('Deck List'),
+                                  alignLabelWithHint: true,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )),
+            );
+          },
+        );
+      },
+    );
+    save();
+    setState(() {});
+    await Future.delayed(const Duration(milliseconds: 500));
+    setState(() {});
+  }
+
   @override
   void initState() {
     _searchFieldController = TextEditingController();
@@ -389,13 +522,45 @@ class _DeckPageState extends State<DeckPage> {
             padding: const EdgeInsets.only(left: 8.0),
             child: Container(),
           ),
-          IconButton(
-            onPressed: exportDeck,
-            icon: const Icon(Icons.list),
-          ),
-          IconButton(
-            onPressed: editDeck,
-            icon: const Icon(Icons.edit),
+          PopupMenuButton(
+            itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+              PopupMenuItem(
+                onTap: editDeck,
+                child: const Row(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(right: 12.0),
+                      child: Icon(Icons.edit),
+                    ),
+                    Text('Edit Deck'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                onTap: exportDeck,
+                child: const Row(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(right: 12.0),
+                      child: Icon(Icons.publish_rounded),
+                    ),
+                    Text('Export Deck List'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                onTap: importDeck,
+                child: const Row(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(right: 12.0),
+                      child: Icon(Icons.download_rounded),
+                    ),
+                    Text('Import Deck List'),
+                  ],
+                ),
+              ),
+            ],
           ),
           Padding(
             padding: const EdgeInsets.only(right: 8.0),

@@ -54,6 +54,19 @@ class MTGDataLoader {
     return await Future.wait(maps.map((e) => CardSet.fromSqlite(e, db)));
   }
 
+  Future<CardSet?> cardByScryfallId(String id) async {
+    List<Map<String, dynamic>> identifiers = await db.query(
+      'cardIdentifiers',
+      where: 'scryfallId = ?',
+      whereArgs: [id],
+    );
+    var uuid = identifiers.firstOrNull?["uuid"];
+    if (uuid == null) {
+      return null;
+    }
+    return cardByUUID(uuid);
+  }
+
   Future<CardSet?> cardByUUID(String uuid) async {
     List<Map<String, dynamic>> maps = await db.query(
       'cards',
