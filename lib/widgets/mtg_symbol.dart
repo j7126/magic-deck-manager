@@ -2,29 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class ManaIcon extends StatefulWidget {
-  const ManaIcon({super.key, required this.color});
+class MtgSymbol extends StatefulWidget {
+  const MtgSymbol({super.key, required this.color});
 
   final String color;
 
   @override
-  State<ManaIcon> createState() => _ManaIconState();
+  State<MtgSymbol> createState() => _MtgSymbolState();
 }
 
-class _ManaIconState extends State<ManaIcon> {
+class _MtgSymbolState extends State<MtgSymbol> {
   late String path;
   bool? exists;
 
+  String get actualPath => 'assets/mana-icons/${widget.color.replaceAll('/', '')}.svg';
+
   void setup() async {
-    try {
-      await rootBundle.load(path);
-      setState(() {
-        exists = true;
-      });
-    } catch (_) {
-      setState(() {
-        exists = false;
-      });
+    if (exists == null) {
+      try {
+        await rootBundle.load(path);
+        setState(() {
+          exists = true;
+        });
+      } catch (_) {
+        setState(() {
+          exists = false;
+        });
+      }
     }
   }
 
@@ -37,6 +41,12 @@ class _ManaIconState extends State<ManaIcon> {
 
   @override
   Widget build(BuildContext context) {
+    if (path != actualPath) {
+      exists = null;
+      path = actualPath;
+      setup();
+    }
+
     return AspectRatio(
       aspectRatio: 1,
       child: exists == null

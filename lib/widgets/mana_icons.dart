@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:magic_deck_manager/widgets/mana_icon.dart';
+import 'package:magic_deck_manager/widgets/mtg_symbol.dart';
 
 class ManaIcons extends StatelessWidget {
   const ManaIcons({
@@ -22,7 +22,7 @@ class ManaIcons extends StatelessWidget {
           if (c.isNotEmpty)
             Padding(
               padding: EdgeInsets.symmetric(horizontal: padding),
-              child: ManaIcon(color: c),
+              child: MtgSymbol(color: c),
             ),
       ],
     );

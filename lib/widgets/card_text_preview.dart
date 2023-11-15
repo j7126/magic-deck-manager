@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:magic_deck_manager/datamodel/deck_cards.dart';
 import 'package:magic_deck_manager/service/static_service.dart';
 import 'package:magic_deck_manager/mtgjson/dataModel/card_set.dart';
-import 'package:magic_deck_manager/widgets/mana_icon.dart';
+import 'package:magic_deck_manager/widgets/mtg_symbol.dart';
 import 'package:magic_deck_manager/widgets/mana_icons.dart';
 
 class CardTextPreview extends StatefulWidget {
@@ -91,7 +91,7 @@ class _CardTextPreviewState extends State<CardTextPreview> {
                             ? WidgetSpan(
                                 child: SizedBox(
                                   height: DefaultTextStyle.of(context).style.fontSize,
-                                  child: ManaIcon(color: span.group(0)?.replaceAll(RegExp(r'{|}'), '') ?? ''),
+                                  child: MtgSymbol(color: span.group(0)?.replaceAll(RegExp(r'{|}'), '') ?? ''),
                                 ),
                               )
                             : TextSpan(
