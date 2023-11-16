@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 
 enum ManaColor {
-  black(str: 'B'),
-  green(str: 'G'),
-  red(str: 'R'),
-  blue(str: 'U'),
-  white(str: 'W'),
-  none(str: 'C');
+  black(str: 'B', name: 'Black'),
+  green(str: 'G', name: 'Green'),
+  red(str: 'R', name: 'Red'),
+  blue(str: 'U', name: 'Blue'),
+  white(str: 'W', name: 'White'),
+  none(str: 'C', name: 'Colorless');
 
   const ManaColor({
     required this.str,
+    required this.name,
   });
 
   final String str;
+  final String name;
 
   static ManaColor fromStr(String str) {
     switch (str) {

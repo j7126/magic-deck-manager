@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:magic_deck_manager/datamodel/color.dart';
 import 'package:magic_deck_manager/datamodel/deck.dart';
 import 'package:magic_deck_manager/datamodel/deck_card.dart';
@@ -11,6 +10,7 @@ import 'package:magic_deck_manager/mtgjson/dataModel/card_set.dart';
 import 'package:magic_deck_manager/pages/cards_page.dart';
 import 'package:magic_deck_manager/widgets/card_preview.dart';
 import 'package:magic_deck_manager/widgets/mana_icons.dart';
+import 'package:magic_deck_manager/widgets/mtg_symbol.dart';
 import 'package:uuid/uuid.dart';
 
 class DeckPage extends StatefulWidget {
@@ -80,6 +80,103 @@ class _DeckPageState extends State<DeckPage> {
     }
   }
 
+  Future editColors() async {
+    if (deck == null) {
+      return;
+    }
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, Function setState) {
+            return AlertDialog(
+              title: const Text(
+                'Colors',
+                textAlign: TextAlign.center,
+              ),
+              actions: <Widget>[
+                FilledButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+              content: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (var color in [ManaColor.black, ManaColor.green, ManaColor.red, ManaColor.blue, ManaColor.white])
+                      CheckboxListTile(
+                        title: Row(
+                          children: [
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxHeight: 22),
+                              child: MtgSymbol(color: color.str),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 16.0),
+                              child: Text(color.name),
+                            )
+                          ],
+                        ),
+                        value: Deck.getColorSet(deck).contains(color),
+                        onChanged: (bool? value) {
+                          if (value == null) {
+                            return;
+                          }
+                          var colors = Deck.getColorSet(deck);
+                          if (value) {
+                            colors.add(color);
+                            colors.remove(ManaColor.none);
+                          } else {
+                            colors.remove(color);
+                          }
+                          setState(() {
+                            Deck.setColorSet(deck, colors);
+                          });
+                        },
+                      ),
+                    CheckboxListTile(
+                      title: Row(
+                        children: [
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 22),
+                            child: MtgSymbol(color: ManaColor.none.str),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 16.0),
+                            child: Text(ManaColor.none.name),
+                          )
+                        ],
+                      ),
+                      value: Deck.getColorSet(deck).contains(ManaColor.none),
+                      onChanged: (bool? value) {
+                        if (value == null) {
+                          return;
+                        }
+                        var colors = Deck.getColorSet(deck);
+                        if (value) {
+                          colors = {ManaColor.none};
+                        }
+                        setState(() {
+                          Deck.setColorSet(deck, colors);
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   void editDeck() async {
     if (deck == null) {
       return;
@@ -104,7 +201,7 @@ class _DeckPageState extends State<DeckPage> {
                 ),
               ],
               content: Padding(
-                padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 32.0),
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
@@ -140,87 +237,40 @@ class _DeckPageState extends State<DeckPage> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: SegmentedButton<ManaColor>(
-                        segments: <ButtonSegment<ManaColor>>[
-                          ButtonSegment<ManaColor>(
-                            value: ManaColor.black,
-                            label: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: SvgPicture.asset(
-                                'assets/mana-icons/B.svg',
-                                height: 32.0,
-                              ),
-                            ),
-                          ),
-                          ButtonSegment<ManaColor>(
-                            value: ManaColor.green,
-                            label: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: SvgPicture.asset(
-                                'assets/mana-icons/G.svg',
-                                height: 32.0,
-                              ),
-                            ),
-                          ),
-                          ButtonSegment<ManaColor>(
-                            value: ManaColor.red,
-                            label: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: SvgPicture.asset(
-                                'assets/mana-icons/R.svg',
-                                height: 32.0,
-                              ),
-                            ),
-                          ),
-                          ButtonSegment<ManaColor>(
-                            value: ManaColor.blue,
-                            label: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: SvgPicture.asset(
-                                'assets/mana-icons/U.svg',
-                                height: 32.0,
-                              ),
-                            ),
-                          ),
-                          ButtonSegment<ManaColor>(
-                            value: ManaColor.white,
-                            label: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: SvgPicture.asset(
-                                'assets/mana-icons/W.svg',
-                                height: 32.0,
-                              ),
-                            ),
-                          ),
-                          ButtonSegment<ManaColor>(
-                            value: ManaColor.none,
-                            label: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: SvgPicture.asset(
-                                'assets/mana-icons/C.svg',
-                                height: 32.0,
-                              ),
-                            ),
-                          ),
-                        ],
-                        selected: Deck.getColorSet(deck),
-                        onSelectionChanged: (Set<ManaColor> newSelection) {
-                          var old = Deck.getColorSet(deck);
-                          var isColorless = old.contains(ManaColor.none);
-                          if (isColorless && newSelection.length > 1) {
-                            newSelection.remove(ManaColor.none);
-                          }
-                          if (!isColorless && newSelection.contains(ManaColor.none)) {
-                            newSelection = {ManaColor.none};
-                          }
-                          setState(() {
-                            Deck.setColorSet(deck, newSelection);
-                          });
+                      padding: const EdgeInsets.only(top: 16.0),
+                      child: GestureDetector(
+                        onTap: () async {
+                          await editColors();
+                          setState(() {});
                         },
-                        multiSelectionEnabled: true,
+                        child: Card(
+                          margin: EdgeInsets.zero,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Row(
+                              children: [
+                                ConstrainedBox(
+                                  constraints: const BoxConstraints(maxHeight: 32),
+                                  child: ManaIcons(mana: ManaColor.getString(Deck.getColorSet(deck))),
+                                ),
+                                const Spacer(),
+                                IconButton(
+                                  onPressed: () async {
+                                    await editColors();
+                                    setState(() {});
+                                  },
+                                  icon: const Icon(Icons.edit_outlined),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
-                    )
+                    ),
+                    const SizedBox(
+                      width: 350,
+                      height: 0,
+                    ),
                   ],
                 ),
               ),
