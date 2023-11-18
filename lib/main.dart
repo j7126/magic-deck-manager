@@ -89,38 +89,41 @@ class _AppState extends State<App> {
         useMaterial3: true,
       ),
       onGenerateRoute: (settings) {
-        if (settings.name == "/home") {
-          return PageRouteBuilder(
-            pageBuilder: (_, __, ___) => ready ? const HomePage() : loading,
-            settings: settings,
-          );
-        }
-        if (settings.name == "/cards") {
-          return PageRouteBuilder(
-            pageBuilder: (_, __, ___) => ready ? const CardsPage() : loading,
-            settings: settings,
-          );
-        }
-        if (settings.name == "/decks") {
-          return PageRouteBuilder(
-            pageBuilder: (_, __, ___) => ready ? const DecksPage() : loading,
-            settings: settings,
-          );
-        }
-        if (settings.name == "/settings") {
-          return PageRouteBuilder(
-            pageBuilder: (_, __, ___) => ready ? const SettingsPage() : loading,
-            settings: settings,
-          );
-        }
-        if (settings.name == "/about") {
-          return PageRouteBuilder(
-            pageBuilder: (_, __, ___) => ready ? const AboutPage() : loading,
-            settings: settings,
-          );
+        var name = settings.name;
+
+        if (name == "/") {
+          name = "/decks";
         }
 
-        return PageRouteBuilder(pageBuilder: (_, __, ___) => const ErrorPage());
+        switch (name) {
+          case "/home":
+            return PageRouteBuilder(
+              pageBuilder: (_, __, ___) => ready ? const HomePage() : loading,
+              settings: settings,
+            );
+          case "/decks":
+            return PageRouteBuilder(
+              pageBuilder: (_, __, ___) => ready ? const DecksPage() : loading,
+              settings: settings,
+            );
+          case "/cards":
+            return PageRouteBuilder(
+              pageBuilder: (_, __, ___) => ready ? const CardsPage() : loading,
+              settings: settings,
+            );
+          case "/settings":
+            return PageRouteBuilder(
+              pageBuilder: (_, __, ___) => ready ? const SettingsPage() : loading,
+              settings: settings,
+            );
+          case "/about":
+            return PageRouteBuilder(
+              pageBuilder: (_, __, ___) => ready ? const AboutPage() : loading,
+              settings: settings,
+            );
+          default:
+            return PageRouteBuilder(pageBuilder: (_, __, ___) => const ErrorPage());
+        }
       },
       initialRoute: "/decks",
     );
