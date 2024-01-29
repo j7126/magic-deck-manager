@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:magic_deck_manager/pages/about_page.dart';
 import 'package:magic_deck_manager/pages/settings_page.dart';
 import 'package:magic_deck_manager/service/settings.dart';
@@ -75,57 +76,62 @@ class _AppState extends State<App> {
   Widget build(BuildContext context) {
     const Widget loading = LoadingPage();
 
-    return MaterialApp(
-      title: Service.appName,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.green,
-          brightness: Brightness.dark,
+    return DynamicColorBuilder(builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+      return MaterialApp(
+        title: Service.appName,
+        theme: ThemeData(
+          colorScheme: lightDynamic ??
+              ColorScheme.fromSeed(
+                seedColor: Colors.green,
+              ),
+          useMaterial3: true,
         ),
-        useMaterial3: true,
-      ),
-      onGenerateRoute: (settings) {
-        var name = settings.name;
+        darkTheme: ThemeData(
+          colorScheme: darkDynamic ?? ColorScheme.fromSeed(
+            seedColor: Colors.green,
+            brightness: Brightness.dark,
+          ),
+          useMaterial3: true,
+        ),
+        onGenerateRoute: (settings) {
+          var name = settings.name;
 
-        if (name == "/") {
-          name = "/decks";
-        }
+          if (name == "/") {
+            name = "/decks";
+          }
 
-        switch (name) {
-          case "/home":
-            return PageRouteBuilder(
-              pageBuilder: (_, __, ___) => ready ? const HomePage() : loading,
-              settings: settings,
-            );
-          case "/decks":
-            return PageRouteBuilder(
-              pageBuilder: (_, __, ___) => ready ? const DecksPage() : loading,
-              settings: settings,
-            );
-          case "/cards":
-            return PageRouteBuilder(
-              pageBuilder: (_, __, ___) => ready ? const CardsPage() : loading,
-              settings: settings,
-            );
-          case "/settings":
-            return PageRouteBuilder(
-              pageBuilder: (_, __, ___) => ready ? const SettingsPage() : loading,
-              settings: settings,
-            );
-          case "/about":
-            return PageRouteBuilder(
-              pageBuilder: (_, __, ___) => ready ? const AboutPage() : loading,
-              settings: settings,
-            );
-          default:
-            return PageRouteBuilder(pageBuilder: (_, __, ___) => const ErrorPage());
-        }
-      },
-      initialRoute: "/decks",
-    );
+          switch (name) {
+            case "/home":
+              return PageRouteBuilder(
+                pageBuilder: (_, __, ___) => ready ? const HomePage() : loading,
+                settings: settings,
+              );
+            case "/decks":
+              return PageRouteBuilder(
+                pageBuilder: (_, __, ___) => ready ? const DecksPage() : loading,
+                settings: settings,
+              );
+            case "/cards":
+              return PageRouteBuilder(
+                pageBuilder: (_, __, ___) => ready ? const CardsPage() : loading,
+                settings: settings,
+              );
+            case "/settings":
+              return PageRouteBuilder(
+                pageBuilder: (_, __, ___) => ready ? const SettingsPage() : loading,
+                settings: settings,
+              );
+            case "/about":
+              return PageRouteBuilder(
+                pageBuilder: (_, __, ___) => ready ? const AboutPage() : loading,
+                settings: settings,
+              );
+            default:
+              return PageRouteBuilder(pageBuilder: (_, __, ___) => const ErrorPage());
+          }
+        },
+        initialRoute: "/decks",
+      );
+    });
   }
 }
