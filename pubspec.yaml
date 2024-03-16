@@ -15,7 +15,6 @@ dependencies:
   json_annotation: ^4.8.1
   sqflite: ^2.3.0
   path: ^1.8.3
-  freezed_annotation: ^2.4.1
   sqflite_common_ffi: ^2.3.0+2
   uuid: ^4.1.0
   flutter_svg: ^2.0.7
@@ -24,6 +23,8 @@ dependencies:
   package_info_plus: ^4.2.0
   url_launcher: ^6.1.14
   dynamic_color: ^1.6.9
+  string_normalizer: ^0.2.2
+  keyrune_icons_flutter: ^0.0.3
 
 dev_dependencies:
   flutter_test:
@@ -32,7 +33,6 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   build_runner: ^2.4.6
   json_serializable: ^6.7.1
-  freezed: ^2.4.5
 
   flutter_launcher_icons: "^0.13.1"
 
@@ -40,7 +40,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - data/AtomicCards.json
+    - data/cards_searchable.json
     - data/SetList.json
     - data/AllPrintings.sqlite
     - assets/mana-icons/

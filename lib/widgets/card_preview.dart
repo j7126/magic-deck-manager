@@ -2,9 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:magic_deck_manager/datamodel/deck_cards.dart';
+import 'package:magic_deck_manager/mtgjson/dataModel/searchable_card.dart';
 import 'package:magic_deck_manager/pages/card_page.dart';
 import 'package:magic_deck_manager/service/static_service.dart';
-import 'package:magic_deck_manager/mtgjson/dataModel/card_atomic.dart';
 import 'package:magic_deck_manager/mtgjson/dataModel/card_set.dart';
 import 'package:magic_deck_manager/widgets/card_text_preview.dart';
 
@@ -59,7 +59,7 @@ class _CardPreviewState extends State<CardPreview> {
                     child: Text(
                       widget.card == null
                           ? "Error fetching card"
-                          : (widget.card is CardSet || widget.card is CardAtomic)
+                          : (widget.card is CardSet || widget.card is SearchableCard)
                               ? widget.card?.name
                               : cardSets.isNotEmpty
                                   ? cardSets.first.name
@@ -110,12 +110,12 @@ class _CardPreviewState extends State<CardPreview> {
                               child: ready && cardSets.isNotEmpty && !Service.settingsService.pref_getScryfallImages
                                   ? CardTextPreview(
                                       card: cardSets.first,
-                                      showSet: widget.card is! CardAtomic,
+                                      showSet: widget.card is! SearchableCard,
                                     )
                                   : Text(
                                       widget.card == null
                                           ? "Error fetching card"
-                                          : (widget.card is CardSet || widget.card is CardAtomic)
+                                          : (widget.card is CardSet || widget.card is SearchableCard)
                                               ? widget.card?.name
                                               : cardSets.isNotEmpty
                                                   ? cardSets.first.name
@@ -177,8 +177,8 @@ class _CardPreviewState extends State<CardPreview> {
       cardSets.add(widget.card);
       isSingle = true;
       ready = true;
-    } else if (widget.card != null && widget.card is CardAtomic) {
-      CardAtomic c = widget.card;
+    } else if (widget.card != null && widget.card is SearchableCard) {
+      SearchableCard c = widget.card;
       cardSets = await Service.dataLoader.cardsByName(c.name);
       if (cardSets.isNotEmpty) ready = true;
     } else {
@@ -262,7 +262,7 @@ class _CardPreviewState extends State<CardPreview> {
                                       clipBehavior: Clip.hardEdge,
                                       child: CardTextPreview(
                                         card: cardSets.first,
-                                        showSet: widget.card is! CardAtomic,
+                                        showSet: widget.card is! SearchableCard,
                                       ),
                                     ),
                                   ),
@@ -272,7 +272,7 @@ class _CardPreviewState extends State<CardPreview> {
                                 padding: const EdgeInsets.all(12.0),
                                 child: CardTextPreview(
                                   card: cardSets.first,
-                                  showSet: widget.card is! CardAtomic,
+                                  showSet: widget.card is! SearchableCard,
                                 ),
                               )
                         : SizedBox(
@@ -282,7 +282,7 @@ class _CardPreviewState extends State<CardPreview> {
                               child: Text(
                                 widget.card == null
                                     ? "Error fetching card"
-                                    : (widget.card is CardSet || widget.card is CardAtomic)
+                                    : (widget.card is CardSet || widget.card is SearchableCard)
                                         ? widget.card?.name
                                         : cardSets.isNotEmpty
                                             ? cardSets.first.name
@@ -352,7 +352,7 @@ class _CardPreviewState extends State<CardPreview> {
                         var result = await Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => CardPage(
-                              card: widget.card,
+                              card: cardSets.first.name,
                               selectCard: widget.selectCard,
                               deckCards: widget.deckCards,
                             ),

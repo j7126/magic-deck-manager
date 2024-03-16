@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:magic_deck_manager/datamodel/deck_cards.dart';
-import 'package:magic_deck_manager/mtgjson/dataModel/card_atomic.dart';
+import 'package:magic_deck_manager/mtgjson/dataModel/searchable_card.dart';
 import 'package:magic_deck_manager/service/static_service.dart';
 import 'package:magic_deck_manager/icons/custom_icons.dart';
 import 'package:magic_deck_manager/widgets/card_preview.dart';
@@ -21,10 +21,43 @@ class _CardsPageState extends State<CardsPage> {
   late TextEditingController _searchFieldController;
   late ScrollController _scrollController;
 
-  static const int cardsShownIncrement = 25;
-  int numCardsShown = cardsShownIncrement;
+  List<SearchableCard> cards = [];
+
+  List<SearchableCard> cardsFiltered = [];
 
   String filter = '';
+
+  void searchCards(String searchStr) async {
+    var finalSearchStr = SearchableCard.filterStringForSearch(searchStr.trim());
+    var searchStrWords = finalSearchStr.split(' ');
+    var cards = Service.dataLoader.searchableCards.data.where(
+      (card) {
+        return card.cardSearchString.contains(finalSearchStr);
+      },
+    ).toList();
+    cards.sort((a, b) {
+      var wordMatchesA = a.getWordMatches(searchStrWords);
+      var wordMatchesB = b.getWordMatches(searchStrWords);
+      if (wordMatchesA != wordMatchesB) {
+        return wordMatchesB - wordMatchesA;
+      } else {
+        return a.name.length.compareTo(b.name.length);
+      }
+    });
+    if (searchStr == _searchFieldController.text) {
+      setState(() {
+        this.cards = cards;
+        filterCards();
+        if (_scrollController.hasClients) {
+          _scrollController.jumpTo(0);
+        }
+      });
+    }
+  }
+
+  void filterCards() {
+    cardsFiltered = cards.where((element) => filter.isEmpty || element.types.any((x) => x.toLowerCase() == filter.toLowerCase())).toList();
+  }
 
   @override
   void initState() {
@@ -35,21 +68,6 @@ class _CardsPageState extends State<CardsPage> {
 
   @override
   Widget build(BuildContext context) {
-    var cards = Service.dataLoader.atomicCards.data.keys.where(
-      (element) {
-        if (element.toLowerCase().contains(_searchFieldController.text.toLowerCase())) {
-          var cardList = Service.dataLoader.atomicCards.data[element];
-          if (cardList != null && cardList.isNotEmpty) {
-            if (filter.isEmpty || cardList.first.types.any((type) => type.toLowerCase() == filter.toLowerCase())) {
-              return true;
-            }
-          }
-        }
-        return false;
-      },
-    );
-    var cardsShown = cards.take(numCardsShown);
-
     return Scaffold(
       drawer: widget.isModal ? null : const NavMenu(),
       appBar: AppBar(
@@ -71,9 +89,12 @@ class _CardsPageState extends State<CardsPage> {
                     if (_searchFieldController.text.isNotEmpty)
                       IconButton(
                         onPressed: () {
-                          _searchFieldController.clear();
-                          filter = '';
-                          setState(() {});
+                          setState(() {
+                            _searchFieldController.clear();
+                            filter = '';
+                            cards.clear();
+                            cardsFiltered.clear();
+                          });
                         },
                         icon: const Icon(Icons.clear),
                       ),
@@ -86,6 +107,7 @@ class _CardsPageState extends State<CardsPage> {
                       onSelected: (String value) {
                         setState(() {
                           filter = value;
+                          filterCards();
                         });
                       },
                       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
@@ -93,7 +115,7 @@ class _CardsPageState extends State<CardsPage> {
                           value: '',
                           child: Text('Any'),
                         ),
-                        for (var type in CardAtomic.filterTypes)
+                        for (var type in SearchableCard.filterTypes)
                           PopupMenuItem<String>(
                             value: type,
                             child: Text(type),
@@ -103,19 +125,14 @@ class _CardsPageState extends State<CardsPage> {
                   ],
                 )),
             autofocus: true,
-            onChanged: (value) => setState(() {
-              numCardsShown = cardsShownIncrement;
-              if (_scrollController.hasClients) {
-                _scrollController.jumpTo(0);
-              }
-            }),
+            onChanged: (value) => searchCards(value),
           ),
         ),
       ),
       body: Center(
         child: Column(
           children: [
-            if (_searchFieldController.text.isEmpty || cardsShown.isEmpty)
+            if (_searchFieldController.text.isEmpty || cardsFiltered.isEmpty)
               Expanded(
                 child: LayoutBuilder(
                   builder: (BuildContext context, BoxConstraints bc) {
@@ -130,7 +147,7 @@ class _CardsPageState extends State<CardsPage> {
                             size: size,
                           ),
                           Text(
-                            cardsShown.isEmpty ? "No results found" : "",
+                            cardsFiltered.isEmpty ? "No results found" : "",
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   fontSize: size * 0.13,
@@ -146,54 +163,25 @@ class _CardsPageState extends State<CardsPage> {
               )
             else
               Expanded(
-                child: GridView.extent(
-                  maxCrossAxisExtent: 300,
-                  childAspectRatio: 488 / 680,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 300,
+                    childAspectRatio: 488 / 680,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                  ),
                   padding: const EdgeInsets.all(16),
                   controller: _scrollController,
-                  children: [
-                    for (var card in cardsShown)
-                      CardPreview(
-                        key: Key(card),
-                        card: Service.dataLoader.atomicCards.data[card]?.first,
-                        selectCard: widget.isModal,
-                        deckCards: widget.deckCards,
-                      ),
-                    if (cards.length > numCardsShown)
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          FilledButton(
-                            onPressed: () async {
-                              setState(() {
-                                numCardsShown += cardsShownIncrement;
-                              });
-                            },
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 16.0),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.expand_circle_down_outlined,
-                                    size: 28,
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.only(left: 16.0),
-                                    child: Text(
-                                      "Show More",
-                                      style: TextStyle(fontSize: 18),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                  ],
+                  itemCount: cardsFiltered.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    var card = cardsFiltered[index];
+                    return CardPreview(
+                      key: Key(card.name),
+                      card: card,
+                      selectCard: widget.isModal,
+                      deckCards: widget.deckCards,
+                    );
+                  },
                 ),
               ),
           ],

@@ -1,15 +1,18 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:json_annotation/json_annotation.dart';
 
-part 'deck_card.freezed.dart';
 part 'deck_card.g.dart';
 
-@unfreezed
-class DeckCard with _$DeckCard {
-  @JsonSerializable(explicitToJson: true)
-  factory DeckCard({
-    required String uuid,
-    required int qty,
-  }) = _DeckCard;
+@JsonSerializable(explicitToJson: true)
+class DeckCard {
+  DeckCard({
+    required this.uuid,
+    required this.qty,
+  });
+
+  String uuid;
+  int qty;
 
   factory DeckCard.fromJson(Map<String, dynamic> json) => _$DeckCardFromJson(json);
+
+  Map<String, dynamic> toJson() => _$DeckCardToJson(this);
 }

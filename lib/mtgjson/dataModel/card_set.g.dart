@@ -6,13 +6,10 @@ part of 'card_set.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_CardSet _$$_CardSetFromJson(Map<String, dynamic> json) => _$_CardSet(
+CardSet _$CardSetFromJson(Map<String, dynamic> json) => CardSet(
       name: json['name'] as String,
       identifiers:
           Identifiers.fromJson(json['identifiers'] as Map<String, dynamic>),
-      availability: (json['availability'] as List<dynamic>)
-          .map((e) => e as String)
-          .toList(),
       borderColor: json['borderColor'] as String,
       colorIdentity: (json['colorIdentity'] as List<dynamic>)
           .map((e) => e as String)
@@ -41,11 +38,9 @@ _$_CardSet _$$_CardSetFromJson(Map<String, dynamic> json) => _$_CardSet(
       uuid: json['uuid'] as String,
     );
 
-Map<String, dynamic> _$$_CardSetToJson(_$_CardSet instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$CardSetToJson(CardSet instance) => <String, dynamic>{
       'name': instance.name,
       'identifiers': instance.identifiers.toJson(),
-      'availability': instance.availability,
       'borderColor': instance.borderColor,
       'colorIdentity': instance.colorIdentity,
       'colors': instance.colors,

@@ -7,7 +7,9 @@ import 'package:magic_deck_manager/datamodel/deck_card.dart';
 import 'package:magic_deck_manager/datamodel/deck_cards.dart';
 import 'package:magic_deck_manager/icons/custom_icons.dart';
 import 'package:magic_deck_manager/mtgjson/dataModel/card_set.dart';
+import 'package:magic_deck_manager/mtgjson/dataModel/searchable_card.dart';
 import 'package:magic_deck_manager/pages/cards_page.dart';
+import 'package:magic_deck_manager/service/static_service.dart';
 import 'package:magic_deck_manager/widgets/card_preview.dart';
 import 'package:magic_deck_manager/widgets/mana_icons.dart';
 import 'package:magic_deck_manager/widgets/mtg_symbol.dart';
@@ -697,7 +699,10 @@ class _DeckPageState extends State<DeckPage> {
                 children: [
                   for (MapEntry<DeckCard, CardSet> card in deckCards?.cards.entries ?? [])
                     if ((_searchFieldController.text.isEmpty ||
-                            card.value.name.toLowerCase().contains(_searchFieldController.text.toLowerCase())) &&
+                            Service.dataLoader.searchableCards.data
+                                .firstWhere((e) => e.name == card.value.name)
+                                .cardSearchString
+                                .contains(SearchableCard.filterStringForSearch(_searchFieldController.text))) &&
                         (filter.isEmpty || card.value.types.contains(filter)))
                       CardPreview(
                         key: Key(card.key.uuid),

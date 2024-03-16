@@ -6,7 +6,7 @@ part of 'set.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_MtgSet _$$_MtgSetFromJson(Map<String, dynamic> json) => _$_MtgSet(
+MtgSet _$MtgSetFromJson(Map<String, dynamic> json) => MtgSet(
       baseSetSize: json['baseSetSize'] as int,
       code: json['code'] as String,
       isFoilOnly: json['isFoilOnly'] as bool,
@@ -18,7 +18,7 @@ _$_MtgSet _$$_MtgSetFromJson(Map<String, dynamic> json) => _$_MtgSet(
       type: json['type'] as String,
     );
 
-Map<String, dynamic> _$$_MtgSetToJson(_$_MtgSet instance) => <String, dynamic>{
+Map<String, dynamic> _$MtgSetToJson(MtgSet instance) => <String, dynamic>{
       'baseSetSize': instance.baseSetSize,
       'code': instance.code,
       'isFoilOnly': instance.isFoilOnly,

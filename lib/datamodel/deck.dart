@@ -1,24 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:magic_deck_manager/datamodel/color.dart';
 import 'package:magic_deck_manager/datamodel/deck_card.dart';
 import 'package:magic_deck_manager/service/static_service.dart';
 
-part 'deck.freezed.dart';
 part 'deck.g.dart';
 
-@unfreezed
-class Deck with _$Deck {
-  @JsonSerializable(explicitToJson: true)
-  factory Deck({
-    required final String uuid,
-    required String name,
-    required String description,
-    required String colors,
-    required List<DeckCard> cards,
-  }) = _Deck;
+@JsonSerializable(explicitToJson: true)
+class Deck {
+  Deck({
+    required this.uuid,
+    required this.name,
+    required this.description,
+    required this.colors,
+    required this.cards,
+  });
+
+  final String uuid;
+  String name;
+  String description;
+  String colors;
+  List<DeckCard> cards;
 
   factory Deck.fromJson(Map<String, dynamic> json) => _$DeckFromJson(json);
+
+  Map<String, dynamic> toJson() => _$DeckToJson(this);
 
   static _asJson(Deck deck) {
     var d = deck.toJson();

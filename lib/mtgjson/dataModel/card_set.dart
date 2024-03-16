@@ -1,44 +1,64 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:flutter/foundation.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:magic_deck_manager/mtgjson/dataModel/identifiers.dart';
 import 'package:sqflite/sqflite.dart';
 
-part 'card_set.freezed.dart';
 part 'card_set.g.dart';
 
-@freezed
-class CardSet with _$CardSet {
-  @JsonSerializable(explicitToJson: true)
-  const factory CardSet({
-    required String name,
-    required Identifiers identifiers,
-    required List<String> availability,
-    required String borderColor,
-    required List<String> colorIdentity,
-    required List<String> colors,
-    required List<String> finishes,
-    required String frameVersion,
-    required String language,
-    required String layout,
-    double? manaValue,
-    String? manaCost,
-    String? rarity,
-    required String setCode,
-    required List<String> subtypes,
-    required List<String> supertypes,
-    required String type,
-    required List<String> types,
-    String? text,
-    String? power,
-    String? toughness,
-    required String uuid,
-  }) = _CardSet;
+@JsonSerializable(explicitToJson: true)
+class CardSet {
+  CardSet({
+    required this.name,
+    required this.identifiers,
+    required this.borderColor,
+    required this.colorIdentity,
+    required this.colors,
+    required this.finishes,
+    required this.frameVersion,
+    required this.language,
+    required this.layout,
+    this.manaValue,
+    this.manaCost,
+    this.rarity,
+    required this.setCode,
+    required this.subtypes,
+    required this.supertypes,
+    required this.type,
+    required this.types,
+    this.text,
+    this.power,
+    this.toughness,
+    required this.uuid,
+  });
+
+  String name;
+  Identifiers identifiers;
+  String borderColor;
+  List<String> colorIdentity;
+  List<String> colors;
+  List<String> finishes;
+  String frameVersion;
+  String language;
+  String layout;
+  double? manaValue;
+  String? manaCost;
+  String? rarity;
+  String setCode;
+  List<String> subtypes;
+  List<String> supertypes;
+  String type;
+  List<String> types;
+  String? text;
+  String? power;
+  String? toughness;
+  String uuid;
 
   factory CardSet.fromJson(Map<String, dynamic> json) => _$CardSetFromJson(json);
 
+  Map<String, dynamic> toJson() => _$CardSetToJson(this);
+
   static Future<CardSet?> fromUUID(String uuid, Database db) async {
     List<Map<String, dynamic>> data = await db.query(
-      'cards',
+      'set_cards',
       where: 'uuid = ?',
       whereArgs: [uuid],
     );
@@ -48,16 +68,15 @@ class CardSet with _$CardSet {
     return CardSet.fromSqlite(data.first, db);
   }
 
-  static Future<CardSet> fromSqlite(Map<String, dynamic> sqlite, Database db) async {
+  static Future<CardSet> fromSqlite(Map<String, dynamic> sqlite, DatabaseExecutor db) async {
     Map<String, dynamic> data = Map.of(sqlite);
     String uuid = data['uuid'];
     List<Map<String, dynamic>> identifiers = await db.query(
-      'cardIdentifiers',
+      'identifiers',
       where: 'uuid = ?',
       whereArgs: [uuid],
     );
     data['identifiers'] = identifiers.first;
-    data['availability'] = data['availability'].toString().split(', ');
     data['colorIdentity'] = data['colorIdentity'].toString().split(', ');
     data['colors'] = data['colors'].toString().split(', ');
     data['finishes'] = data['finishes'].toString().split(', ');

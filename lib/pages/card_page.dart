@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:magic_deck_manager/datamodel/color.dart';
 import 'package:magic_deck_manager/datamodel/deck_cards.dart';
-import 'package:magic_deck_manager/mtgjson/dataModel/card_atomic.dart';
 import 'package:magic_deck_manager/mtgjson/dataModel/card_set.dart';
 import 'package:magic_deck_manager/service/static_service.dart';
 import 'package:magic_deck_manager/widgets/card_preview.dart';
@@ -10,7 +9,7 @@ import 'package:magic_deck_manager/widgets/card_text_preview.dart';
 class CardPage extends StatefulWidget {
   const CardPage({super.key, required this.card, this.selectCard = false, this.deckCards});
 
-  final CardAtomic card;
+  final String card;
   final bool selectCard;
   final DeckCards? deckCards;
 
@@ -26,7 +25,7 @@ class _CardPageState extends State<CardPage> {
   List<CardSet> cardSets = [];
 
   void setup() async {
-    cardSets = await Service.dataLoader.cardsByName(widget.card.name);
+    cardSets = await Service.dataLoader.cardsByName(widget.card);
     String? id = cardSets.first.identifiers.scryfallId;
     if (id == null) {
       valid = false;
@@ -51,22 +50,24 @@ class _CardPageState extends State<CardPage> {
   Widget build(BuildContext context) {
     LinearGradient? bgGradient;
     Color? bgColor;
-    var colors = widget.card.colorIdentity.map((s) => ManaColor.fromStr(s));
-    if (colors.isNotEmpty) {
-      var bgOpacity = 40;
-      bgGradient = colors.length >= 2
-          ? LinearGradient(
-              begin: Alignment.centerRight,
-              end: Alignment.centerLeft,
-              colors: colors.map((c) => ManaColor.getColor(c, opacity: bgOpacity)).toList(),
-            )
-          : null;
-      bgColor = colors.length < 2 ? ManaColor.getColor(colors.first, opacity: bgOpacity) : null;
+    if (cardSets.isNotEmpty) {
+      var colors = cardSets[0].colorIdentity.map((s) => ManaColor.fromStr(s));
+      if (colors.isNotEmpty) {
+        var bgOpacity = 40;
+        bgGradient = colors.length >= 2
+            ? LinearGradient(
+                begin: Alignment.centerRight,
+                end: Alignment.centerLeft,
+                colors: colors.map((c) => ManaColor.getColor(c, opacity: bgOpacity)).toList(),
+              )
+            : null;
+        bgColor = colors.length < 2 ? ManaColor.getColor(colors.first, opacity: bgOpacity) : null;
+      }
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.card.name),
+        title: Text(widget.card),
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: bgGradient,
@@ -118,10 +119,13 @@ class _CardPageState extends State<CardPage> {
                                       flex: isLg ? 1 : 0,
                                       child: Padding(
                                         padding: const EdgeInsets.only(top: 12.0),
-                                        child: CardTextPreview(
-                                          card: c,
-                                          deckCards: widget.deckCards,
-                                          selectCard: widget.selectCard,
+                                        child: SizedBox(
+                                          width: double.infinity,
+                                          child: CardTextPreview(
+                                            card: c,
+                                            deckCards: widget.deckCards,
+                                            selectCard: widget.selectCard,
+                                          ),
                                         ),
                                       ),
                                     ),

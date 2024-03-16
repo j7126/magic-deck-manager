@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:keyrune_icons_flutter/keyrune_icons_flutter.dart';
 import 'package:magic_deck_manager/datamodel/deck_cards.dart';
 import 'package:magic_deck_manager/service/static_service.dart';
 import 'package:magic_deck_manager/mtgjson/dataModel/card_set.dart';
@@ -32,6 +33,8 @@ class _CardTextPreviewState extends State<CardTextPreview> {
 
   @override
   Widget build(BuildContext context) {
+    var mtgSet = Service.dataLoader.sets.data.firstWhereOrNull((x) => x.code == widget.card.setCode);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,8 +65,21 @@ class _CardTextPreviewState extends State<CardTextPreview> {
         if (widget.showSet)
           Padding(
             padding: const EdgeInsets.all(4.0),
-            child: Text(
-              '${Service.dataLoader.sets.data.firstWhereOrNull((x) => x.code == widget.card.setCode)?.name ?? ''} (${widget.card.setCode})',
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (mtgSet != null && KeyruneIcons.icons.containsKey(mtgSet.keyruneCode.toLowerCase()))
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: Icon(
+                      size: 18,
+                      KeyruneIcons.icons[mtgSet.keyruneCode.toLowerCase()],
+                    ),
+                  ),
+                Text(
+                  '${Service.dataLoader.sets.data.firstWhereOrNull((x) => x.code == widget.card.setCode)?.name ?? ''} (${widget.card.setCode})',
+                ),
+              ],
             ),
           ),
         Padding(

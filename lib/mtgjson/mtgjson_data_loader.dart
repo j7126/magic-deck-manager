@@ -1,8 +1,11 @@
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:developer';
+import 'package:flutter/foundation.dart';
 import 'package:magic_deck_manager/mtgjson/dataModel/card_set.dart';
+import 'package:magic_deck_manager/mtgjson/dataModel/searchable_cards.dart';
+import 'package:magic_deck_manager/mtgjson/dataModel/set.dart';
 import 'package:magic_deck_manager/mtgjson/dataModel/sets.dart';
-import 'package:magic_deck_manager/mtgjson/dataModel/atomic_cards.dart';
 import 'package:path/path.dart';
 import 'package:flutter/services.dart';
 import 'package:sqflite/sqflite.dart';
@@ -16,37 +19,33 @@ class MTGDataLoader {
 
   bool loaded = false;
 
-  late AtomicCards atomicCards;
+  late SearchableCards searchableCards;
   late MtgSets sets;
   late Database db;
 
   Future loadAll() async {
-    await loadAtomicCards();
+    await loadSearchableCards();
     await loadSets();
     await loadSqlite();
     loaded = true;
     onLoad();
   }
 
-  Future<List<CardSet>> searchCards(
-    String query, {
-    int limit = 25,
-    int offset = 0,
-  }) async {
-    List<Map<String, dynamic>> maps = await db.query(
-      'cards',
-      where: 'name LIKE ?',
-      whereArgs: ['%$query%'],
-      limit: limit,
-      offset: offset,
-    );
+  Future loadSearchableCards() async {
+    String json = await rootBundle.loadString('data/cards_searchable.json');
+    Map<String, dynamic> data = await compute((j) => jsonDecode(j), json);
+    searchableCards = SearchableCards.fromJson(data);
+  }
 
-    return await Future.wait(maps.map((e) => CardSet.fromSqlite(e, db)));
+  Future loadSets() async {
+    String json = await rootBundle.loadString('data/SetList.json');
+    Map<String, dynamic> data = await compute((j) => jsonDecode(j), json);
+    sets = MtgSets.fromJson(data);
   }
 
   Future<List<CardSet>> cardsByName(String name) async {
     List<Map<String, dynamic>> maps = await db.query(
-      'cards',
+      'set_cards',
       where: 'name = ?',
       whereArgs: [name],
     );
@@ -54,9 +53,20 @@ class MTGDataLoader {
     return await Future.wait(maps.map((e) => CardSet.fromSqlite(e, db)));
   }
 
+  Future<List<CardSet>> cardsByNames(Iterable<String> names) async {
+    var names0 = names.toList();
+    List<Map<String, dynamic>> maps = await db.query(
+      'set_cards',
+      where: "name IN (${names0.map((e) => '?').join(',')})",
+      whereArgs: names0,
+    );
+
+    return await Future.wait(maps.map((e) => CardSet.fromSqlite(e, db)));
+  }
+
   Future<CardSet?> cardByScryfallId(String id) async {
     List<Map<String, dynamic>> identifiers = await db.query(
-      'cardIdentifiers',
+      'identifiers',
       where: 'scryfallId = ?',
       whereArgs: [id],
     );
@@ -69,7 +79,7 @@ class MTGDataLoader {
 
   Future<CardSet?> cardByUUID(String uuid) async {
     List<Map<String, dynamic>> maps = await db.query(
-      'cards',
+      'set_cards',
       where: 'uuid = ?',
       whereArgs: [uuid],
     );
@@ -81,34 +91,52 @@ class MTGDataLoader {
     return await CardSet.fromSqlite(maps.first, db);
   }
 
+  Future<MtgSet?> setByCode(String code) async {
+    List<Map<String, dynamic>> maps = await db.query(
+      'sets',
+      where: 'code = ?',
+      whereArgs: [code],
+    );
+
+    if (maps.isEmpty) {
+      return null;
+    }
+
+    return MtgSet.fromJson(maps.first);
+  }
+
+  Future moveSqliteFile(String path) async {
+    try {
+      await Directory(dirname(path)).create(recursive: true);
+    } catch (_) {}
+
+    ByteData data = await rootBundle.load("data/AllPrintings.sqlite");
+    List<int> bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+
+    await File(path).writeAsBytes(bytes, flush: true);
+
+    log("mtg database extracted.");
+  }
+
   Future loadSqlite() async {
+    log("loading mtg database.");
+
     var databasesPath = await getDatabasesPath();
     var path = join(databasesPath, "AllPrintings.sqlite");
 
     var exists = await databaseExists(path);
     if (!exists) {
-      try {
-        await Directory(dirname(path)).create(recursive: true);
-      } catch (_) {}
-
-      ByteData data = await rootBundle.load("data/AllPrintings.sqlite");
-      List<int> bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-
-      await File(path).writeAsBytes(bytes, flush: true);
+      await moveSqliteFile(path);
     }
 
     db = await openDatabase(path, readOnly: true);
-  }
 
-  Future loadAtomicCards() async {
-    String json = await rootBundle.loadString('data/AtomicCards.json');
-    Map<String, dynamic> data = jsonDecode(json);
-    atomicCards = AtomicCards.fromJson(data);
-  }
+    var meta = await db.query("meta");
 
-  Future loadSets() async {
-    String json = await rootBundle.loadString('data/SetList.json');
-    Map<String, dynamic> data = jsonDecode(json);
-    sets = MtgSets.fromJson(data);
+    if (meta[0]["date"] != searchableCards.meta.date) {
+      await moveSqliteFile(path);
+      await db.close();
+      db = await openDatabase(path, readOnly: true);
+    }
   }
 }

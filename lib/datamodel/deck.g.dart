@@ -6,7 +6,7 @@ part of 'deck.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_Deck _$$_DeckFromJson(Map<String, dynamic> json) => _$_Deck(
+Deck _$DeckFromJson(Map<String, dynamic> json) => Deck(
       uuid: json['uuid'] as String,
       name: json['name'] as String,
       description: json['description'] as String,
@@ -16,7 +16,7 @@ _$_Deck _$$_DeckFromJson(Map<String, dynamic> json) => _$_Deck(
           .toList(),
     );
 
-Map<String, dynamic> _$$_DeckToJson(_$_Deck instance) => <String, dynamic>{
+Map<String, dynamic> _$DeckToJson(Deck instance) => <String, dynamic>{
       'uuid': instance.uuid,
       'name': instance.name,
       'description': instance.description,
