@@ -16,52 +16,8 @@ class DeckPreview extends StatefulWidget {
 }
 
 class _DeckPreviewState extends State<DeckPreview> {
-  void setup() async {
-    /*if (widget.card != null && widget.card is String) {
-      var c = await widget.dataLoader.cardByUUID(widget.card);
-      if (c == null) {
-        setState(() {
-          valid = false;
-        });
-        return;
-      }
-      cardSets.add(c);
-      isSingle = true;
-      ready = true;
-    } else if (widget.card != null && widget.card is CardSet) {
-      cardSets.add(widget.card);
-      isSingle = true;
-      ready = true;
-    } else if (widget.card != null && widget.card is CardAtomic) {
-      CardAtomic c = widget.card;
-      cardSets = await widget.dataLoader.cardsByName(c.name);
-      ready = true;
-    } else {
-      setState(() {
-        valid = false;
-      });
-      return;
-    }
-    if (ready && mounted) {
-      setState(() {
-        String? id = cardSets.first.identifiers.scryfallId;
-        if (id == null) {
-          ready = false;
-          valid = false;
-          return;
-        }
-        String fileFace = 'front';
-        String fileType = 'normal';
-        String dir1 = id[0];
-        String dir2 = id[1];
-        imageUrl = 'https://cards.scryfall.io/$fileType/$fileFace/$dir1/$dir2/$id.jpg';
-      });
-    }*/
-  }
-
   @override
   void initState() {
-    setup();
     super.initState();
   }
 
@@ -84,18 +40,23 @@ class _DeckPreviewState extends State<DeckPreview> {
                 Row(
                   children: [
                     (widget.deck.name.isEmpty)
-                        ? Opacity(
-                          opacity: 0.4,
-                          child: Text(
-                              'Unnamed deck',
-                              style: Theme.of(context).textTheme.headlineSmall,
-                            ),
-                        )
-                        : Text(
-                            widget.deck.name,
-                            style: Theme.of(context).textTheme.headlineSmall,
+                        ? Expanded(
+                          child: Opacity(
+                            opacity: 0.4,
+                            child: Text(
+                                'Unnamed deck',
+                                style: Theme.of(context).textTheme.headlineSmall,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                           ),
-                    const Spacer(),
+                        )
+                        : Expanded(
+                          child: Text(
+                              widget.deck.name,
+                              style: Theme.of(context).textTheme.headlineSmall,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ),
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxHeight: 28),
                       child: ManaIcons(mana: ManaColor.getString(Deck.getColorSet(widget.deck))),
