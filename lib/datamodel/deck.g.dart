@@ -14,6 +14,7 @@ Deck _$DeckFromJson(Map<String, dynamic> json) => Deck(
       cards: (json['cards'] as List<dynamic>)
           .map((e) => DeckCard.fromJson(e as Map<String, dynamic>))
           .toList(),
+      format: json['format'] as String?,
     );
 
 Map<String, dynamic> _$DeckToJson(Deck instance) => <String, dynamic>{
@@ -22,4 +23,5 @@ Map<String, dynamic> _$DeckToJson(Deck instance) => <String, dynamic>{
       'description': instance.description,
       'colors': instance.colors,
       'cards': instance.cards.map((e) => e.toJson()).toList(),
+      'format': instance.format,
     };

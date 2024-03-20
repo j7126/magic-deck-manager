@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:magic_deck_manager/mtgjson/dataModel/leadership_skills.dart';
 import 'package:string_normalizer/string_normalizer.dart';
 
 part 'searchable_card.g.dart';
@@ -8,6 +9,11 @@ class SearchableCard {
   SearchableCard({
     required this.name,
     required this.types,
+    required this.subtypes,
+    required this.supertypes,
+    required this.colorIdentity,
+    this.leadershipSkills,
+    this.keywords,
   }) {
     cardSearchString = filterStringForSearch(name);
     cardSearchStringWords = cardSearchString.split(' ');
@@ -15,6 +21,11 @@ class SearchableCard {
 
   String name;
   List<String> types;
+  List<String> subtypes;
+  List<String> supertypes;
+  List<String> colorIdentity;
+  LeadershipSkills? leadershipSkills;
+  List<String>? keywords;
 
   late String cardSearchString;
   late List<String> cardSearchStringWords;

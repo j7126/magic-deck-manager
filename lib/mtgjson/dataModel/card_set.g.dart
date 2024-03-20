@@ -19,8 +19,12 @@ CardSet _$CardSetFromJson(Map<String, dynamic> json) => CardSet(
       finishes:
           (json['finishes'] as List<dynamic>).map((e) => e as String).toList(),
       frameVersion: json['frameVersion'] as String,
+      keywords: (json['keywords'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
       language: json['language'] as String,
       layout: json['layout'] as String,
+      loyalty: json['loyalty'] as String?,
       manaValue: (json['manaValue'] as num?)?.toDouble(),
       manaCost: json['manaCost'] as String?,
       rarity: json['rarity'] as String?,
@@ -46,8 +50,10 @@ Map<String, dynamic> _$CardSetToJson(CardSet instance) => <String, dynamic>{
       'colors': instance.colors,
       'finishes': instance.finishes,
       'frameVersion': instance.frameVersion,
+      'keywords': instance.keywords,
       'language': instance.language,
       'layout': instance.layout,
+      'loyalty': instance.loyalty,
       'manaValue': instance.manaValue,
       'manaCost': instance.manaCost,
       'rarity': instance.rarity,

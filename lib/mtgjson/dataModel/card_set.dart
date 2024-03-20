@@ -14,8 +14,10 @@ class CardSet {
     required this.colors,
     required this.finishes,
     required this.frameVersion,
+    this.keywords,
     required this.language,
     required this.layout,
+    this.loyalty,
     this.manaValue,
     this.manaCost,
     this.rarity,
@@ -37,8 +39,10 @@ class CardSet {
   List<String> colors;
   List<String> finishes;
   String frameVersion;
+  List<String>? keywords;
   String language;
   String layout;
+  String? loyalty;
   double? manaValue;
   String? manaCost;
   String? rarity;
@@ -80,6 +84,7 @@ class CardSet {
     data['colorIdentity'] = data['colorIdentity'].toString().split(', ');
     data['colors'] = data['colors'].toString().split(', ');
     data['finishes'] = data['finishes'].toString().split(', ');
+    data['keywords'] = data['keywords'].toString().split(', ');
     data['subtypes'] = data['subtypes'].toString().split(', ');
     data['supertypes'] = data['supertypes'].toString().split(', ');
     data['types'] = data['types'].toString().split(', ');

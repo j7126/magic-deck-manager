@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:keyrune_icons_flutter/keyrune_icons_flutter.dart';
 import 'package:magic_deck_manager/datamodel/deck_cards.dart';
 import 'package:magic_deck_manager/mtgjson/dataModel/searchable_card.dart';
 import 'package:magic_deck_manager/pages/card_page.dart';
@@ -16,6 +17,7 @@ class CardPreview extends StatefulWidget {
     this.selectCard = false,
     this.dialogPreview = false,
     this.fadeText = true,
+    this.isCommander = false,
     this.qty,
     this.qtyChanged,
     this.deckCards,
@@ -26,6 +28,7 @@ class CardPreview extends StatefulWidget {
   final bool selectCard;
   final bool dialogPreview;
   final bool fadeText;
+  final bool isCommander;
   final int? qty;
   final Function(int)? qtyChanged;
   final DeckCards? deckCards;
@@ -442,6 +445,36 @@ class _CardPreviewState extends State<CardPreview> {
                               ),
                             ],
                           ),
+                        ),
+                      ),
+                    ),
+                  ),
+                if (widget.isCommander)
+                  const Align(
+                    alignment: Alignment.topLeft,
+                    child: Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Opacity(
+                        opacity: 0.5,
+                        child: Icon(
+                          KeyruneIcons.ss_cmd,
+                          shadows: [
+                            Shadow(
+                              offset: Offset(0, 0),
+                              blurRadius: 2.0,
+                              color: Color.fromARGB(100, 0, 0, 0),
+                            ),
+                            Shadow(
+                              offset: Offset(1, 1),
+                              blurRadius: 1.0,
+                              color: Colors.black,
+                            ),
+                            Shadow(
+                              offset: Offset(2, 2),
+                              blurRadius: 4.0,
+                              color: Colors.black,
+                            ),
+                          ],
                         ),
                       ),
                     ),

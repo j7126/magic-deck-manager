@@ -28,22 +28,7 @@ class _CardsPageState extends State<CardsPage> {
   String filter = '';
 
   void searchCards(String searchStr) async {
-    var finalSearchStr = SearchableCard.filterStringForSearch(searchStr.trim());
-    var searchStrWords = finalSearchStr.split(' ');
-    var cards = Service.dataLoader.searchableCards.data.where(
-      (card) {
-        return card.cardSearchString.contains(finalSearchStr);
-      },
-    ).toList();
-    cards.sort((a, b) {
-      var wordMatchesA = a.getWordMatches(searchStrWords);
-      var wordMatchesB = b.getWordMatches(searchStrWords);
-      if (wordMatchesA != wordMatchesB) {
-        return wordMatchesB - wordMatchesA;
-      } else {
-        return a.name.length.compareTo(b.name.length);
-      }
-    });
+    var cards = Service.dataLoader.searchableCards.searchCards(searchStr);
     if (searchStr == _searchFieldController.text) {
       setState(() {
         this.cards = cards;

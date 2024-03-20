@@ -7,10 +7,12 @@ class DeckCard {
   DeckCard({
     required this.uuid,
     required this.qty,
+    this.commander = false,
   });
 
   String uuid;
   int qty;
+  bool commander;
 
   factory DeckCard.fromJson(Map<String, dynamic> json) => _$DeckCardFromJson(json);
 

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:magic_deck_manager/datamodel/db.dart';
 import 'package:magic_deck_manager/pages/about_page.dart';
 import 'package:magic_deck_manager/pages/settings_page.dart';
 import 'package:magic_deck_manager/service/settings.dart';
 import 'package:magic_deck_manager/service/static_service.dart';
 import 'package:magic_deck_manager/pages/decks_page.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:path/path.dart';
 import 'package:magic_deck_manager/mtgjson/mtgjson_data_loader.dart';
 import 'package:magic_deck_manager/pages/error_page.dart';
 import 'package:magic_deck_manager/pages/home_page.dart';
@@ -39,18 +39,7 @@ class _AppState extends State<App> {
   }
 
   void loadDb() async {
-    Service.db = await openDatabase(
-      join(await getDatabasesPath(), 'decks.db'),
-      onCreate: (db, version) async {
-        await db.execute(
-          'CREATE TABLE decks(uuid TEXT PRIMARY KEY, name TEXT, description TEXT, colors TEXT)',
-        );
-        await db.execute(
-          'CREATE TABLE cards(deck TEXT, uuid TEXT, qty INT, primary key (deck, uuid))',
-        );
-      },
-      version: 1,
-    );
+    await Db.setupDb();
     setState(() {
       dbReady = true;
     });

@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:magic_deck_manager/datamodel/color.dart';
 import 'package:magic_deck_manager/datamodel/deck.dart';
 import 'package:magic_deck_manager/datamodel/deck_card.dart';
@@ -35,6 +37,9 @@ class _DeckPageState extends State<DeckPage> {
 
   String filter = '';
 
+  SearchableCard? commander;
+  SearchableCard? commanderPartner;
+
   late ScrollController _scrollController;
   late TextEditingController _searchFieldController;
 
@@ -48,12 +53,25 @@ class _DeckPageState extends State<DeckPage> {
       Deck.setColorSet(deck, {ManaColor.none});
     }
     deckCards = await DeckCards.fromDeck(deck);
+    getCommanders();
     ready = true;
     if (widget.uuid == null) {
       triggerEditModal = true;
     }
 
     setState(() {});
+  }
+
+  void getCommanders() {
+    commander = null;
+    commanderPartner = null;
+    var commanders = deckCards?.cards.entries.where((e) => e.key.commander).toList();
+    if (commanders != null && commanders.isNotEmpty) {
+      commander = Service.dataLoader.searchableCards.data.firstWhereOrNull((e) => e.name == commanders[0].value.name);
+      if (commanders.length >= 2 && commander != null && (commander?.keywords?.contains("Partner") ?? false)) {
+        commanderPartner = Service.dataLoader.searchableCards.data.firstWhereOrNull((e) => e.name == commanders[1].value.name);
+      }
+    }
   }
 
   Future save() async {
@@ -179,6 +197,30 @@ class _DeckPageState extends State<DeckPage> {
     );
   }
 
+  Future setCardCommander(SearchableCard? c, bool state) async {
+    if (c != null && deckCards != null) {
+      if (!(deckCards?.cards.entries.any((x) => x.value.name == c.name) ?? false)) {
+        var cards = await Service.dataLoader.cardsByName(c.name);
+        if (cards.isNotEmpty) {
+          await deckCards?.addUUID(cards.first.uuid);
+        }
+      }
+      var cardSet = deckCards?.cards.entries.firstWhere((x) => x.value.name == c.name);
+      deck?.cards.firstWhere((x) => x.uuid == cardSet?.key.uuid).commander = state;
+
+      if (state && commanderPartner != null && !(c.keywords?.contains("Partner") ?? false)) {
+        if (c.name == commander?.name) {
+          setCardCommander(commanderPartner, false);
+          commanderPartner = null;
+        } else if (c.name == commanderPartner?.name) {
+          setCardCommander(commander, false);
+          commander = commanderPartner;
+          commanderPartner = null;
+        }
+      }
+    }
+  }
+
   void editDeck() async {
     if (deck == null) {
       return;
@@ -190,6 +232,8 @@ class _DeckPageState extends State<DeckPage> {
         return StatefulBuilder(
           builder: (BuildContext context, Function setState) {
             return AlertDialog(
+              titlePadding: const EdgeInsets.only(top: 16.0, left: 24.0, right: 24.0, bottom: 8.0),
+              contentPadding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 32.0, top: 8.0),
               title: const Text(
                 'Edit deck',
                 textAlign: TextAlign.center,
@@ -202,76 +246,222 @@ class _DeckPageState extends State<DeckPage> {
                   },
                 ),
               ],
-              content: Padding(
-                padding: const EdgeInsets.all(16.0),
+              content: Container(
+                width: double.maxFinite,
+                constraints: const BoxConstraints(maxWidth: 350.0),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          label: Text('Name'),
-                        ),
-                        initialValue: deck?.name,
-                        onChanged: (value) {
-                          setState(() {
-                            deck?.name = value;
-                          });
-                        },
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        label: Text('Name'),
+                        isDense: true,
                       ),
+                      initialValue: deck?.name,
+                      onChanged: (value) {
+                        setState(() {
+                          deck?.name = value;
+                        });
+                      },
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          label: Text('Description'),
-                        ),
-                        initialValue: deck?.description,
-                        onChanged: (value) {
-                          setState(() {
-                            deck?.description = value;
-                          });
-                        },
+                    const Gap(16.0),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        label: Text('Description'),
+                        isDense: true,
                       ),
+                      initialValue: deck?.description,
+                      onChanged: (value) {
+                        setState(() {
+                          deck?.description = value;
+                        });
+                      },
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16.0),
-                      child: GestureDetector(
-                        onTap: () async {
-                          await editColors();
-                          setState(() {});
-                        },
-                        child: Card(
-                          margin: EdgeInsets.zero,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Row(
-                              children: [
-                                ConstrainedBox(
-                                  constraints: const BoxConstraints(maxHeight: 32),
-                                  child: ManaIcons(mana: ManaColor.getString(Deck.getColorSet(deck))),
-                                ),
-                                const Spacer(),
-                                IconButton(
-                                  onPressed: () async {
-                                    await editColors();
-                                    setState(() {});
-                                  },
-                                  icon: const Icon(Icons.edit_outlined),
-                                )
-                              ],
+                    const Gap(16.0),
+                    DropdownMenu<String?>(
+                      inputDecorationTheme: const InputDecorationTheme(
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                      enableFilter: false,
+                      requestFocusOnTap: false,
+                      expandedInsets: EdgeInsets.zero,
+                      label: const Text("Format"),
+                      initialSelection: deck?.format,
+                      onSelected: (String? val) {
+                        setState(() {
+                          deck?.format = val;
+                          if (val != "Commander") {
+                            commander = null;
+                            commanderPartner = null;
+                          }
+                        });
+                      },
+                      dropdownMenuEntries: [
+                        null,
+                        "Commander",
+                        "Standard",
+                        "Modern",
+                      ]
+                          .map(
+                            (e) => DropdownMenuEntry<String?>(
+                              value: e,
+                              label: e ?? "Unknown",
                             ),
+                          )
+                          .toList(),
+                    ),
+                    if (deck?.format == "Commander") const Gap(16.0),
+                    if (deck?.format == "Commander")
+                      LayoutBuilder(builder: (context, constraints) {
+                        return Autocomplete<SearchableCard>(
+                          initialValue: TextEditingValue(text: commander?.name ?? ''),
+                          displayStringForOption: (option) => option.name,
+                          optionsBuilder: (TextEditingValue textEditingValue) {
+                            if (textEditingValue.text == '') {
+                              return const [];
+                            }
+                            return Service.dataLoader.searchableCards
+                                .searchCards(textEditingValue.text)
+                                .where(
+                                  (e) => e.leadershipSkills?.commander ?? false,
+                                )
+                                .take(5);
+                          },
+                          fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) => TextField(
+                            controller: textEditingController,
+                            focusNode: focusNode,
+                            onSubmitted: (_) => onFieldSubmitted(),
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: 'Commander',
+                              isDense: true,
+                            ),
+                          ),
+                          optionsViewBuilder: (context, onSelected, options) => Align(
+                            alignment: Alignment.topLeft,
+                            child: SizedBox(
+                              width: constraints.maxWidth,
+                              height: 48.0 * options.length,
+                              child: Card(
+                                margin: EdgeInsets.zero,
+                                child: ListView(
+                                  children: <Widget>[
+                                    for (var option in options)
+                                      ListTile(
+                                        title: Text(option.name),
+                                        onTap: () => onSelected(option),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          onSelected: (SearchableCard selection) async {
+                            Deck.setColorSet(deck, selection.colorIdentity.map((e) => ManaColor.fromStr(e)).toSet());
+                            var oldCommander = commander;
+                            commander = selection;
+                            if (oldCommander != null && oldCommander != commander) {
+                              await setCardCommander(oldCommander, false);
+                            }
+                            await setCardCommander(commander, true);
+                            setState(() {});
+                            await save();
+                          },
+                        );
+                      }),
+                    if (deck?.format == "Commander" && (commander?.keywords?.contains("Partner") ?? false)) const Gap(16.0),
+                    if (deck?.format == "Commander" && (commander?.keywords?.contains("Partner") ?? false))
+                      LayoutBuilder(builder: (context, constraints) {
+                        return Autocomplete<SearchableCard>(
+                          initialValue: TextEditingValue(text: commanderPartner?.name ?? ''),
+                          displayStringForOption: (option) => option.name,
+                          optionsBuilder: (TextEditingValue textEditingValue) {
+                            if (textEditingValue.text == '') {
+                              return const [];
+                            }
+                            return Service.dataLoader.searchableCards
+                                .searchCards(textEditingValue.text)
+                                .where(
+                                  (e) =>
+                                      e.name != commander?.name &&
+                                      (e.leadershipSkills?.commander ?? false) &&
+                                      (e.keywords?.contains("Partner") ?? false) &&
+                                      setEquals(e.colorIdentity.map((e) => ManaColor.fromStr(e)).toSet(), Deck.getColorSet(deck)),
+                                )
+                                .take(5);
+                          },
+                          fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) => TextField(
+                            controller: textEditingController,
+                            focusNode: focusNode,
+                            onSubmitted: (_) => onFieldSubmitted(),
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: 'Partner Commander',
+                              isDense: true,
+                            ),
+                          ),
+                          optionsViewBuilder: (context, onSelected, options) => Align(
+                            alignment: Alignment.topLeft,
+                            child: SizedBox(
+                              width: constraints.maxWidth,
+                              height: 48.0 * options.length,
+                              child: Card(
+                                margin: EdgeInsets.zero,
+                                child: ListView(
+                                  children: <Widget>[
+                                    for (var option in options)
+                                      ListTile(
+                                        title: Text(option.name),
+                                        onTap: () => onSelected(option),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          onSelected: (SearchableCard selection) async {
+                            var oldCommander = commanderPartner;
+                            commanderPartner = selection;
+                            if (oldCommander != null && oldCommander != commanderPartner) {
+                              await setCardCommander(oldCommander, false);
+                            }
+                            await setCardCommander(commanderPartner, true);
+                            setState(() {});
+                            await save();
+                          },
+                        );
+                      }),
+                    const Gap(16.0),
+                    GestureDetector(
+                      onTap: () async {
+                        await editColors();
+                        setState(() {});
+                      },
+                      child: Card(
+                        margin: EdgeInsets.zero,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                          child: Row(
+                            children: [
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(maxHeight: 32),
+                                child: ManaIcons(mana: ManaColor.getString(Deck.getColorSet(deck))),
+                              ),
+                              const Spacer(),
+                              IconButton(
+                                onPressed: () async {
+                                  await editColors();
+                                  setState(() {});
+                                },
+                                icon: const Icon(Icons.edit_outlined),
+                              )
+                            ],
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(
-                      width: 350,
-                      height: 0,
                     ),
                   ],
                 ),
@@ -697,7 +887,13 @@ class _DeckPageState extends State<DeckPage> {
                 padding: const EdgeInsets.all(16),
                 controller: _scrollController,
                 children: [
-                  for (MapEntry<DeckCard, CardSet> card in deckCards?.cards.entries ?? [])
+                  for (MapEntry<DeckCard, CardSet> card in deckCards?.cards.entries.sorted((a, b) {
+                        if (a.key.commander != b.key.commander) {
+                          return (b.key.commander ? 1 : 0) - (a.key.commander ? 1 : 0);
+                        }
+                        return a.value.name.toLowerCase().compareTo(b.value.name.toLowerCase());
+                      }) ??
+                      [])
                     if ((_searchFieldController.text.isEmpty ||
                             Service.dataLoader.searchableCards.data
                                 .firstWhere((e) => e.name == card.value.name)
@@ -709,9 +905,11 @@ class _DeckPageState extends State<DeckPage> {
                         card: card.value,
                         qty: card.key.qty,
                         dialogPreview: true,
+                        isCommander: card.key.commander,
                         qtyChanged: (var val) async {
                           if (deckCards != null) {
                             await deckCards?.setQty(card.key.uuid, val);
+                            getCommanders();
                             setState(() {});
                             save();
                           }

@@ -25,6 +25,7 @@ dependencies:
   dynamic_color: ^1.6.9
   string_normalizer: ^0.2.2
   keyrune_icons_flutter: ^0.0.3
+  gap: ^3.0.1
 
 dev_dependencies:
   flutter_test:

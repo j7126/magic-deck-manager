@@ -14,6 +14,7 @@ class Deck {
     required this.description,
     required this.colors,
     required this.cards,
+    this.format,
   });
 
   final String uuid;
@@ -21,6 +22,7 @@ class Deck {
   String description;
   String colors;
   List<DeckCard> cards;
+  String? format;
 
   factory Deck.fromJson(Map<String, dynamic> json) => _$DeckFromJson(json);
 
@@ -54,6 +56,7 @@ class Deck {
                 'deck': deck.uuid,
                 'uuid': x.uuid,
                 'qty': x.qty,
+                'commander': x.commander ? 1 : 0,
               },
             );
           } catch (e) {}
@@ -72,6 +75,7 @@ class Deck {
             'deck': deck.uuid,
             'uuid': x.uuid,
             'qty': x.qty,
+            'commander': x.commander ? 1 : 0,
           },
         ),
       ),
@@ -129,6 +133,7 @@ class Deck {
           (e) => DeckCard(
             uuid: e['uuid'].toString(),
             qty: int.parse(e['qty'].toString()),
+            commander: int.parse(e['commander']?.toString() ?? "0") > 0,
           ).toJson(),
         )
         .toList();
@@ -189,6 +194,7 @@ class Deck {
           (e) => DeckCard(
             uuid: e['uuid'].toString(),
             qty: int.parse(e['qty'].toString()),
+            commander: int.parse(e['commander']?.toString() ?? "0") > 0,
           ),
         )
         .toList();
