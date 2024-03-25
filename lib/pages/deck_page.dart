@@ -2,7 +2,9 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_enhanced_flexible_space_bar/flutter_enhanced_flexible_space_bar.dart';
 import 'package:gap/gap.dart';
+import 'package:keyrune_icons_flutter/keyrune_icons_flutter.dart';
 import 'package:magic_deck_manager/datamodel/color.dart';
 import 'package:magic_deck_manager/datamodel/deck.dart';
 import 'package:magic_deck_manager/datamodel/deck_card.dart';
@@ -724,147 +726,6 @@ class _DeckPageState extends State<DeckPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: bgGradient,
-            color: bgColor,
-          ),
-        ),
-        scrolledUnderElevation: 4,
-        shadowColor: Theme.of(context).colorScheme.shadow,
-        titleSpacing: 4.0,
-        title: !ready
-            ? Container()
-            : deck?.name.isEmpty ?? true
-                ? const Opacity(
-                    opacity: 0.4,
-                    child: Text('Unnamed deck'),
-                  )
-                : Text(deck?.name ?? ''),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: Row(
-              children: [
-                const Icon(CustomIcons.cards_outlined),
-                Text(
-                  deckCards?.cards.entries.map((e) => e.key.qty).sum.toString() ?? '',
-                  style: const TextStyle(
-                    fontSize: 20,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 22),
-            child: ManaIcons(mana: ManaColor.getString(Deck.getColorSet(deck))),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: Container(),
-          ),
-          PopupMenuButton(
-            itemBuilder: (BuildContext context) => <PopupMenuEntry>[
-              PopupMenuItem(
-                onTap: editDeck,
-                child: const Row(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(right: 12.0),
-                      child: Icon(Icons.edit),
-                    ),
-                    Text('Edit Deck'),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                onTap: exportDeck,
-                child: const Row(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(right: 12.0),
-                      child: Icon(Icons.publish_rounded),
-                    ),
-                    Text('Export Deck List'),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                onTap: importDeck,
-                child: const Row(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(right: 12.0),
-                      child: Icon(Icons.download_rounded),
-                    ),
-                    Text('Import Deck List'),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: Container(),
-          ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(40),
-          child: TextField(
-            controller: _searchFieldController,
-            decoration: InputDecoration(
-              hintText: "Search",
-              border: const UnderlineInputBorder(),
-              prefixIcon: const Icon(Icons.search),
-              isDense: true,
-              suffixIcon: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (_searchFieldController.text.isNotEmpty)
-                    IconButton(
-                      onPressed: () {
-                        _searchFieldController.clear();
-                        filter = '';
-                        setState(() {});
-                      },
-                      icon: const Icon(Icons.clear),
-                    ),
-                  PopupMenuButton<String>(
-                    initialValue: filter,
-                    icon: Icon(
-                      filter.isNotEmpty ? Icons.filter_alt : Icons.filter_alt_outlined,
-                      color: filter.isNotEmpty ? Theme.of(context).colorScheme.primary : null,
-                    ),
-                    onSelected: (String value) {
-                      setState(() {
-                        filter = value;
-                      });
-                    },
-                    itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                      const PopupMenuItem<String>(
-                        value: '',
-                        child: Text('Any'),
-                      ),
-                      for (var type in DeckCards.getTypes(deckCards).entries)
-                        PopupMenuItem<String>(
-                          value: type.key,
-                          child: Text('${type.key} (${type.value})'),
-                        ),
-                    ],
-                  )
-                ],
-              ),
-            ),
-            onChanged: (value) => setState(() {
-              if (_scrollController.hasClients) {
-                _scrollController.jumpTo(0);
-              }
-            }),
-          ),
-        ),
-      ),
       floatingActionButton: ready
           ? FloatingActionButton.extended(
               onPressed: () {
@@ -874,78 +735,264 @@ class _DeckPageState extends State<DeckPage> {
               label: const Text("Add card"),
             )
           : null,
-      body: ready
-          ? Container(
-              decoration: BoxDecoration(
-                gradient: bgGradient,
-                color: bgColor,
-              ),
-              child: GridView.extent(
-                maxCrossAxisExtent: 300,
-                childAspectRatio: 488 / 680,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                padding: const EdgeInsets.all(16),
-                controller: _scrollController,
-                children: [
-                  for (MapEntry<DeckCard, CardSet> card in deckCards?.cards.entries.sorted((a, b) {
-                        if (a.key.commander != b.key.commander) {
-                          return (b.key.commander ? 1 : 0) - (a.key.commander ? 1 : 0);
-                        }
-                        return a.value.name.toLowerCase().compareTo(b.value.name.toLowerCase());
-                      }) ??
-                      [])
-                    if ((_searchFieldController.text.isEmpty ||
-                            Service.dataLoader.searchableCards.data
-                                .firstWhere((e) => e.name == card.value.name)
-                                .cardSearchString
-                                .contains(SearchableCard.filterStringForSearch(_searchFieldController.text))) &&
-                        (filter.isEmpty || card.value.types.contains(filter)))
-                      CardPreview(
-                        key: Key(card.key.uuid),
-                        card: card.value,
-                        qty: card.key.qty,
-                        dialogPreview: true,
-                        isCommander: card.key.commander,
-                        qtyChanged: (var val) async {
-                          if (deckCards != null) {
-                            await deckCards?.setQty(card.key.uuid, val);
-                            getCommanders();
-                            setState(() {});
-                            save();
-                          }
-                        },
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: bgGradient,
+          color: bgColor,
+        ),
+        child: Stack(
+          children: [
+            if (!ready)
+              Center(
+                child: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints bc) {
+                    var size = min(bc.maxHeight, bc.maxWidth) * 0.5;
+                    return Opacity(
+                      opacity: 0.3,
+                      child: Column(
+                        children: [
+                          const Spacer(),
+                          Icon(
+                            CustomIcons.deck_outlined,
+                            size: size,
+                          ),
+                          const Spacer(),
+                        ],
                       ),
-                ],
+                    );
+                  },
+                ),
               ),
-            )
-          : Column(
-              children: [
-                const LinearProgressIndicator(),
-                Expanded(
-                  child: Center(
-                    child: LayoutBuilder(
-                      builder: (BuildContext context, BoxConstraints bc) {
-                        var size = min(bc.maxHeight, bc.maxWidth) * 0.5;
-                        return Opacity(
-                          opacity: 0.3,
-                          child: Column(
-                            children: [
-                              const Spacer(),
-                              Icon(
-                                CustomIcons.deck_outlined,
-                                size: size,
+            CustomScrollView(
+              controller: _scrollController,
+              slivers: <Widget>[
+                if (ready)
+                  SliverAppBar(
+                    pinned: true,
+                    expandedHeight: 132.0,
+                    scrolledUnderElevation: 4,
+                    shadowColor: Theme.of(context).colorScheme.shadow,
+                    titleSpacing: 4.0,
+                    title: !ready
+                        ? Container()
+                        : deck?.name.isEmpty ?? true
+                            ? const Opacity(
+                                opacity: 0.4,
+                                child: Text('Unnamed deck'),
+                              )
+                            : Text(deck?.name ?? ''),
+                    flexibleSpace: EnhancedFlexibleSpaceBar(
+                      background: Container(
+                        decoration: BoxDecoration(
+                          gradient: bgGradient,
+                          color: bgColor,
+                        ),
+                      ),
+                      expandedBackground: Padding(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: Row(
+                          children: [
+                            if (deck?.format == "Commander" && commander?.name != null)
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    const Icon(KeyruneIcons.ss_cmd),
+                                    const Gap(6.0),
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            commander?.name ?? "",
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                            style: TextStyle(
+                                              fontSize: commanderPartner != null ? 14.0 : 16.0,
+                                              height: 0.9,
+                                            ),
+                                          ),
+                                          if (commanderPartner != null)
+                                            Text(
+                                              commanderPartner?.name ?? "",
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 1,
+                                              style: const TextStyle(fontSize: 14.0),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              const Spacer(),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxHeight: 22),
+                              child: ManaIcons(mana: ManaColor.getString(Deck.getColorSet(deck))),
+                            ),
+                            const Gap(16.0),
+                            const Icon(CustomIcons.cards_outlined),
+                            const Gap(4.0),
+                            Text(
+                              deckCards?.cards.entries.map((e) => e.key.qty).sum.toString() ?? '',
+                              style: const TextStyle(
+                                fontSize: 20,
+                              ),
+                            ),
+                            const Gap(12.0),
+                          ],
+                        ),
+                      ),
+                    ),
+                    actions: [
+                      PopupMenuButton(
+                        itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+                          PopupMenuItem(
+                            onTap: editDeck,
+                            child: const Row(
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(right: 12.0),
+                                  child: Icon(Icons.edit),
+                                ),
+                                Text('Edit Deck'),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            onTap: exportDeck,
+                            child: const Row(
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(right: 12.0),
+                                  child: Icon(Icons.publish_rounded),
+                                ),
+                                Text('Export Deck List'),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            onTap: importDeck,
+                            child: const Row(
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(right: 12.0),
+                                  child: Icon(Icons.download_rounded),
+                                ),
+                                Text('Import Deck List'),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Container(),
+                      ),
+                    ],
+                    bottom: PreferredSize(
+                      preferredSize: const Size.fromHeight(40),
+                      child: TextField(
+                        controller: _searchFieldController,
+                        decoration: InputDecoration(
+                          hintText: "Search",
+                          border: const UnderlineInputBorder(),
+                          prefixIcon: const Icon(Icons.search),
+                          isDense: true,
+                          suffixIcon: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (_searchFieldController.text.isNotEmpty)
+                                IconButton(
+                                  onPressed: () {
+                                    _searchFieldController.clear();
+                                    filter = '';
+                                    setState(() {});
+                                  },
+                                  icon: const Icon(Icons.clear),
+                                ),
+                              PopupMenuButton<String>(
+                                initialValue: filter,
+                                icon: Icon(
+                                  filter.isNotEmpty ? Icons.filter_alt : Icons.filter_alt_outlined,
+                                  color: filter.isNotEmpty ? Theme.of(context).colorScheme.primary : null,
+                                ),
+                                onSelected: (String value) {
+                                  setState(() {
+                                    filter = value;
+                                  });
+                                },
+                                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                                  const PopupMenuItem<String>(
+                                    value: '',
+                                    child: Text('Any'),
+                                  ),
+                                  for (var type in DeckCards.getTypes(deckCards).entries)
+                                    PopupMenuItem<String>(
+                                      value: type.key,
+                                      child: Text('${type.key} (${type.value})'),
+                                    ),
+                                ],
+                              )
                             ],
                           ),
-                        );
-                      },
+                        ),
+                        onChanged: (value) => setState(() {
+                          if (_scrollController.hasClients) {
+                            _scrollController.jumpTo(0);
+                          }
+                        }),
+                      ),
                     ),
                   ),
-                )
+                if (!ready)
+                  const SliverToBoxAdapter(
+                    child: LinearProgressIndicator(),
+                  ),
+                if (ready)
+                  SliverPadding(
+                    padding: const EdgeInsets.all(16.0),
+                    sliver: SliverGrid.extent(
+                      maxCrossAxisExtent: 300,
+                      childAspectRatio: 488 / 680,
+                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 16,
+                      children: [
+                        for (MapEntry<DeckCard, CardSet> card in deckCards?.cards.entries.sorted((a, b) {
+                              if (a.key.commander != b.key.commander) {
+                                return (b.key.commander ? 1 : 0) - (a.key.commander ? 1 : 0);
+                              }
+                              return a.value.name.toLowerCase().compareTo(b.value.name.toLowerCase());
+                            }) ??
+                            [])
+                          if ((_searchFieldController.text.isEmpty ||
+                                  Service.dataLoader.searchableCards.data
+                                      .firstWhere((e) => e.name == card.value.name)
+                                      .cardSearchString
+                                      .contains(SearchableCard.filterStringForSearch(_searchFieldController.text))) &&
+                              (filter.isEmpty || card.value.types.contains(filter)))
+                            CardPreview(
+                              key: Key(card.key.uuid),
+                              card: card.value,
+                              qty: card.key.qty,
+                              dialogPreview: true,
+                              isCommander: card.key.commander,
+                              qtyChanged: (var val) async {
+                                if (deckCards != null) {
+                                  await deckCards?.setQty(card.key.uuid, val);
+                                  getCommanders();
+                                  setState(() {});
+                                  save();
+                                }
+                              },
+                            ),
+                      ],
+                    ),
+                  ),
               ],
             ),
+          ],
+        ),
+      ),
     );
   }
 }

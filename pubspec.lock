@@ -238,6 +238,15 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_enhanced_flexible_space_bar:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: main
+      resolved-ref: "0c3f59e8ab37c901efad9113be04deff0ca38cc9"
+      url: "https://github.com/j7126/flutter_enhanced_flexible_space_bar.git"
+    source: git
+    version: "0.0.1"
   flutter_launcher_icons:
     dependency: "direct dev"
     description:
@@ -958,5 +967,5 @@ packages:
     source: hosted
     version: "3.1.2"
 sdks:
-  dart: ">=3.3.0 <4.0.0"
+  dart: ">=3.3.1 <4.0.0"
   flutter: ">=3.19.0"
