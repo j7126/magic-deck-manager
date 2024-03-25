@@ -34,6 +34,7 @@ class _AboutPageState extends State<AboutPage> {
         scrolledUnderElevation: 4,
         shadowColor: Theme.of(context).colorScheme.shadow,
         title: const Text("About"),
+        titleSpacing: 4.0,
       ),
       body: SingleChildScrollView(
         child: Padding(

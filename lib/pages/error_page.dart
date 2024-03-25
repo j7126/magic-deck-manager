@@ -11,6 +11,7 @@ class ErrorPage extends StatelessWidget {
       drawer: const NavMenu(),
       appBar: AppBar(
         title: const Text(Service.appName),
+        titleSpacing: 4.0,
       ),
       body: const Center(
         child: Text('An unknown error has occurred.'),

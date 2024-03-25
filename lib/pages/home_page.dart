@@ -23,6 +23,7 @@ class _HomePageState extends State<HomePage> {
         scrolledUnderElevation: 4,
         shadowColor: Theme.of(context).colorScheme.shadow,
         title: const Text(Service.appName),
+        titleSpacing: 4.0,
       ),
       body: const Center(
         child: Column(

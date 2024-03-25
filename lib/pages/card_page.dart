@@ -74,6 +74,7 @@ class _CardPageState extends State<CardPage> {
             color: bgColor,
           ),
         ),
+        titleSpacing: 4.0,
       ),
       body: Container(
         decoration: BoxDecoration(

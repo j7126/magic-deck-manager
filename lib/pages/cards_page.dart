@@ -59,6 +59,7 @@ class _CardsPageState extends State<CardsPage> {
         scrolledUnderElevation: 4,
         shadowColor: Theme.of(context).colorScheme.shadow,
         title: const Text('Search cards'),
+        titleSpacing: 4.0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(40),
           child: TextField(

@@ -18,6 +18,7 @@ class _SettingsPageState extends State<SettingsPage> {
         scrolledUnderElevation: 4,
         shadowColor: Theme.of(context).colorScheme.shadow,
         title: const Text("Settings"),
+        titleSpacing: 4.0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),

@@ -76,6 +76,7 @@ class _DecksPageState extends State<DecksPage> {
         scrolledUnderElevation: 4,
         shadowColor: Theme.of(context).colorScheme.shadow,
         title: const Text("Decks"),
+        titleSpacing: 4.0,
       ),
       floatingActionButton: ready
           ? FloatingActionButton.extended(

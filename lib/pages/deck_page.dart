@@ -733,6 +733,7 @@ class _DeckPageState extends State<DeckPage> {
         ),
         scrolledUnderElevation: 4,
         shadowColor: Theme.of(context).colorScheme.shadow,
+        titleSpacing: 4.0,
         title: !ready
             ? Container()
             : deck?.name.isEmpty ?? true
