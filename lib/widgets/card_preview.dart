@@ -378,22 +378,21 @@ class _CardPreviewState extends State<CardPreview> {
                         child: LayoutBuilder(
                           builder: (BuildContext context, BoxConstraints constraints) => Row(
                             children: [
-                              Transform.scale(
-                                scale: constraints.maxWidth < 200 ? constraints.maxWidth / 200 : 1,
-                                alignment: Alignment.bottomLeft,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: const BorderRadius.all(Radius.circular(64)),
-                                    color: Theme.of(context).colorScheme.primary,
-                                  ),
-                                  clipBehavior: Clip.antiAlias,
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      FilledButton(
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: const BorderRadius.all(Radius.circular(64)),
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                clipBehavior: Clip.antiAlias,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      width: 38.0,
+                                      child: FilledButton(
                                         style: const ButtonStyle(
                                           padding: MaterialStatePropertyAll(
-                                            EdgeInsets.symmetric(vertical: 16.0),
+                                            EdgeInsets.symmetric(vertical: 12.0),
                                           ),
                                           shape: MaterialStatePropertyAll(
                                             RoundedRectangleBorder(),
@@ -402,28 +401,38 @@ class _CardPreviewState extends State<CardPreview> {
                                         onPressed: () async {
                                           if (widget.qtyChanged != null) widget.qtyChanged!((widget.qty ?? 1) - 1);
                                         },
-                                        child: Icon(
-                                          (widget.qty ?? 1) > 1 ? Icons.remove : Icons.delete_outline,
-                                          size: 28,
-                                        ),
-                                      ),
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          borderRadius: const BorderRadius.all(Radius.circular(64)),
-                                          color: Theme.of(context).colorScheme.background,
-                                        ),
                                         child: Padding(
-                                          padding: const EdgeInsets.symmetric(vertical: 7.0, horizontal: 24.0),
-                                          child: Text(
-                                            widget.qty.toString(),
-                                            style: const TextStyle(fontSize: 21),
+                                          padding: const EdgeInsets.only(left: 4.0),
+                                          child: Icon(
+                                            (widget.qty ?? 1) > 1 ? Icons.remove : Icons.delete,
+                                            size: 24,
                                           ),
                                         ),
                                       ),
-                                      FilledButton(
+                                    ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: const BorderRadius.all(Radius.circular(64)),
+                                        color: Theme.of(context).colorScheme.background,
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 3.0, horizontal: 18.0),
+                                        child: Container(
+                                          constraints: const BoxConstraints(minWidth: 14.0),
+                                          child: Text(
+                                            widget.qty.toString(),
+                                            style: const TextStyle(fontSize: 18),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 38.0,
+                                      child: FilledButton(
                                         style: const ButtonStyle(
                                           padding: MaterialStatePropertyAll(
-                                            EdgeInsets.symmetric(vertical: 16.0),
+                                            EdgeInsets.symmetric(vertical: 12.0),
                                           ),
                                           shape: MaterialStatePropertyAll(
                                             RoundedRectangleBorder(
@@ -434,13 +443,16 @@ class _CardPreviewState extends State<CardPreview> {
                                         onPressed: () async {
                                           if (widget.qtyChanged != null) widget.qtyChanged!((widget.qty ?? 1) + 1);
                                         },
-                                        child: const Icon(
-                                          Icons.add,
-                                          size: 28,
+                                        child: const Padding(
+                                          padding: EdgeInsets.only(right: 4.0),
+                                          child: Icon(
+                                            Icons.add,
+                                            size: 24,
+                                          ),
                                         ),
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
