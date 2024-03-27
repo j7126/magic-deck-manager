@@ -46,6 +46,58 @@ class _CardPageState extends State<CardPage> {
     super.initState();
   }
 
+  Widget buildCardSetItem(BuildContext context, CardSet c) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              var isLg = constraints.maxWidth > 500;
+              var preview = Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxHeight: 300,
+                  ),
+                  child: CardPreview(
+                    card: c,
+                    hideButtons: true,
+                    dialogPreview: true,
+                  ),
+                ),
+              );
+              return Flex(
+                direction: isLg ? Axis.horizontal : Axis.vertical,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isLg && Service.settingsService.pref_getScryfallImages) preview,
+                  Expanded(
+                    flex: isLg ? 1 : 0,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 12.0),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: CardTextPreview(
+                          card: c,
+                          deckCards: widget.deckCards,
+                          selectCard: widget.selectCard,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (!isLg && Service.settingsService.pref_getScryfallImages) preview,
+                ],
+              );
+            },
+          ),
+        ),
+        const Divider(height: 0),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     LinearGradient? bgGradient;
@@ -89,56 +141,10 @@ class _CardPageState extends State<CardPage> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    for (var c in cardSets)
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: LayoutBuilder(
-                              builder: (BuildContext context, BoxConstraints constraints) {
-                                var isLg = constraints.maxWidth > 500;
-                                var preview = Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: ConstrainedBox(
-                                    constraints: const BoxConstraints(
-                                      maxHeight: 300,
-                                    ),
-                                    child: CardPreview(
-                                      card: c,
-                                      hideButtons: true,
-                                      dialogPreview: true,
-                                    ),
-                                  ),
-                                );
-                                return Flex(
-                                  direction: isLg ? Axis.horizontal : Axis.vertical,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    if (isLg && Service.settingsService.pref_getScryfallImages) preview,
-                                    Expanded(
-                                      flex: isLg ? 1 : 0,
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(top: 12.0),
-                                        child: SizedBox(
-                                          width: double.infinity,
-                                          child: CardTextPreview(
-                                            card: c,
-                                            deckCards: widget.deckCards,
-                                            selectCard: widget.selectCard,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    if (!isLg && Service.settingsService.pref_getScryfallImages) preview,
-                                  ],
-                                );
-                              },
-                            ),
-                          ),
-                          const Divider(height: 0),
-                        ],
-                      ),
+                    for (var c in cardSets.where((x) => widget.deckCards?.cards.entries.any((e) => e.value.uuid == x.uuid) ?? false))
+                      buildCardSetItem(context, c),
+                    for (var c in cardSets.where((x) => !(widget.deckCards?.cards.entries.any((e) => e.value.uuid == x.uuid) ?? false)))
+                      buildCardSetItem(context, c),
                   ],
                 ),
               )
