@@ -1,11 +1,13 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:keyrune_icons_flutter/keyrune_icons_flutter.dart';
 import 'package:magic_deck_manager/datamodel/deck_cards.dart';
 import 'package:magic_deck_manager/service/static_service.dart';
 import 'package:magic_deck_manager/mtgjson/dataModel/card_set.dart';
 import 'package:magic_deck_manager/widgets/mtg_symbol.dart';
 import 'package:magic_deck_manager/widgets/mana_icons.dart';
+import 'package:magic_deck_manager/widgets/quantity_buttons.dart';
 
 class CardTextPreview extends StatefulWidget {
   const CardTextPreview({
@@ -34,6 +36,7 @@ class _CardTextPreviewState extends State<CardTextPreview> {
   @override
   Widget build(BuildContext context) {
     var mtgSet = Service.dataLoader.sets.data.firstWhereOrNull((x) => x.code == widget.card.setCode);
+    var cardInDeck = (widget.deckCards?.cards.keys.any((e) => e.uuid == widget.card.uuid) ?? false);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -119,31 +122,90 @@ class _CardTextPreviewState extends State<CardTextPreview> {
             },
           ),
         ),
-        if (widget.selectCard)
+        if (widget.selectCard && cardInDeck)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Row(
+              children: [
+                QuantityButtons(
+                  qty: widget.deckCards?.cards.keys.firstWhere((x) => x.uuid == widget.card.uuid).qty ?? 1,
+                  qtyChanged: (qty) {
+                    if (widget.deckCards != null) {
+                      setState(() {
+                        widget.deckCards?.setQty(widget.card.uuid, qty);
+                      });
+                    }
+                  },
+                ),
+                const Gap(8),
+                FilledButton(
+                  onPressed: () {
+                    Navigator.of(context).pop("");
+                  },
+                  style: const ButtonStyle(
+                    padding: MaterialStatePropertyAll(
+                      EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
+                    ),
+                    backgroundColor: MaterialStatePropertyAll(
+                      Colors.green,
+                    ),
+                    foregroundColor: MaterialStatePropertyAll(
+                      Colors.white,
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.check,
+                        size: 24,
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          left: 8.0,
+                          right: 8.0,
+                        ),
+                        child: Text(
+                          'Done',
+                          style: TextStyle(fontSize: 18),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        if (widget.selectCard && !cardInDeck)
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
             child: FilledButton(
               onPressed: () {
                 Navigator.of(context).pop(widget.card.uuid);
               },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      !(widget.deckCards?.cards.keys.any((e) => e.uuid == widget.card.uuid) ?? false) ? Icons.check : Icons.add,
-                      size: 28,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16.0),
-                      child: Text(
-                        !(widget.deckCards?.cards.keys.any((e) => e.uuid == widget.card.uuid) ?? false) ? 'Select' : 'Add',
-                        style: const TextStyle(fontSize: 18),
-                      ),
-                    ),
-                  ],
+              style: const ButtonStyle(
+                padding: MaterialStatePropertyAll(
+                  EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
                 ),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.add,
+                    size: 24,
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                      left: 8.0,
+                      right: 8.0,
+                    ),
+                    child: Text(
+                      'Add',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

@@ -96,10 +96,13 @@ class _DeckPageState extends State<DeckPage> {
       ),
     );
     if (result is String) {
-      await deckCards?.addUUID(result);
-      setState(() {});
-      save();
+      if (result != "") {
+        await deckCards?.addUUID(result);
+      }
     }
+    getCommanders();
+    setState(() {});
+    save();
   }
 
   Future editColors() async {
