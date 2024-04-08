@@ -453,7 +453,7 @@ class _DeckPageState extends State<DeckPage> {
                             children: [
                               ConstrainedBox(
                                 constraints: const BoxConstraints(maxHeight: 32),
-                                child: ManaIcons(mana: ManaColor.getString(Deck.getColorSet(deck))),
+                                child: ManaIconsWidget(mana: ManaColor.getString(Deck.getColorSet(deck))),
                               ),
                               const Spacer(),
                               IconButton(
@@ -830,7 +830,7 @@ class _DeckPageState extends State<DeckPage> {
                               ),
                             ConstrainedBox(
                               constraints: const BoxConstraints(maxHeight: 22),
-                              child: ManaIcons(mana: ManaColor.getString(Deck.getColorSet(deck))),
+                              child: ManaIconsWidget(mana: ManaColor.getString(Deck.getColorSet(deck))),
                             ),
                             const Gap(16.0),
                             const Icon(CustomIcons.cards_outlined),

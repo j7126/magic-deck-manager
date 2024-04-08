@@ -59,7 +59,7 @@ class _DeckPreviewState extends State<DeckPreview> {
                         ),
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxHeight: 28),
-                      child: ManaIcons(mana: ManaColor.getString(Deck.getColorSet(widget.deck))),
+                      child: ManaIconsWidget(mana: ManaColor.getString(Deck.getColorSet(widget.deck))),
                     ),
                     PopupMenuButton(
                       itemBuilder: (BuildContext context) => <PopupMenuEntry>[

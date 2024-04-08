@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:magic_deck_manager/widgets/mtg_symbol.dart';
 
-class ManaIcons extends StatelessWidget {
-  const ManaIcons({
+class ManaIconsWidget extends StatelessWidget {
+  const ManaIconsWidget({
     super.key,
     required this.mana,
     this.padding = 4,

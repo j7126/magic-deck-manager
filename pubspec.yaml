@@ -25,6 +25,7 @@ dependencies:
   dynamic_color: ^1.6.9
   string_normalizer: ^0.2.2
   keyrune_icons_flutter: ^0.0.3
+  mana_icons_flutter: ^0.0.1
   gap: ^3.0.1
   flutter_enhanced_flexible_space_bar:
     git:
