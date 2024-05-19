@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:magic_deck_manager/datamodel/db.dart';
-import 'package:magic_deck_manager/pages/about_page.dart';
-import 'package:magic_deck_manager/pages/settings_page.dart';
+import 'package:magic_deck_manager/ui/about/about_page.dart';
+import 'package:magic_deck_manager/ui/settings/settings_page.dart';
 import 'package:magic_deck_manager/service/settings.dart';
 import 'package:magic_deck_manager/service/static_service.dart';
-import 'package:magic_deck_manager/pages/decks_page.dart';
+import 'package:magic_deck_manager/ui/decks/decks_page.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:magic_deck_manager/mtgjson/mtgjson_data_loader.dart';
-import 'package:magic_deck_manager/pages/error_page.dart';
-import 'package:magic_deck_manager/pages/home_page.dart';
-import 'package:magic_deck_manager/pages/cards_page.dart';
-import 'package:magic_deck_manager/pages/loading_page.dart';
+import 'package:magic_deck_manager/ui/error_page.dart';
+import 'package:magic_deck_manager/ui/cards/cards_page.dart';
+import 'package:magic_deck_manager/ui/loading_page.dart';
 import 'dart:io';
 
 void main() {
@@ -90,11 +89,6 @@ class _AppState extends State<App> {
           }
 
           switch (name) {
-            case "/home":
-              return PageRouteBuilder(
-                pageBuilder: (_, __, ___) => ready ? const HomePage() : loading,
-                settings: settings,
-              );
             case "/decks":
               return PageRouteBuilder(
                 pageBuilder: (_, __, ___) => ready ? const DecksPage() : loading,

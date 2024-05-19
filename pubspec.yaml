@@ -49,7 +49,6 @@ flutter:
     - data/cards_searchable.json
     - data/SetList.json
     - data/AllPrintings.sqlite
-    - assets/mana-icons/
     - assets/icon/logo.svg
   
   fonts:
