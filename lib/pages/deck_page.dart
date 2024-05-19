@@ -159,6 +159,9 @@ class _DeckPageState extends State<DeckPage> {
                             colors.remove(ManaColor.none);
                           } else {
                             colors.remove(color);
+                            if (colors.isEmpty) {
+                              colors = {ManaColor.none};
+                            }
                           }
                           setState(() {
                             Deck.setColorSet(deck, colors);

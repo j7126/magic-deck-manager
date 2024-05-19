@@ -166,7 +166,7 @@ class Deck {
     if (deck == null) return null;
     var colors = Deck.getColorSet(deck);
     var bgOpacity = 40;
-    return colors.length < 2 ? ManaColor.getColor(colors.first, opacity: bgOpacity) : null;
+    return colors.length < 2 && colors.isNotEmpty ? ManaColor.getColor(colors.first, opacity: bgOpacity) : null;
   }
 
   static LinearGradient? getBgGradient(Deck? deck) {
