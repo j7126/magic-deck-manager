@@ -229,6 +229,17 @@ class _DeckPageState extends State<DeckPage> {
     }
   }
 
+  void setDeckColorsByCommanders() {
+    var colors = <ManaColor>{};
+    if (commander != null) {
+      colors.addAll(commander!.colorIdentity.map((e) => ManaColor.fromStr(e)));
+    }
+    if (commanderPartner != null) {
+      colors.addAll(commanderPartner!.colorIdentity.map((e) => ManaColor.fromStr(e)));
+    }
+    Deck.setColorSet(deck, colors);
+  }
+
   void editDeck() async {
     if (deck == null) {
       return;
@@ -370,13 +381,13 @@ class _DeckPageState extends State<DeckPage> {
                               ),
                             ),
                             onSelected: (SearchableCard selection) async {
-                              Deck.setColorSet(deck, selection.colorIdentity.map((e) => ManaColor.fromStr(e)).toSet());
                               var oldCommander = commander;
                               commander = selection;
                               if (oldCommander != null && oldCommander != commander) {
                                 await setCardCommander(oldCommander, false);
                               }
                               await setCardCommander(commander, true);
+                              setDeckColorsByCommanders();
                               setState(() {});
                               await save();
                             },
@@ -394,13 +405,10 @@ class _DeckPageState extends State<DeckPage> {
                               }
                               return Service.dataLoader.searchableCards
                                   .searchCards(textEditingValue.text)
-                                  .where(
-                                    (e) =>
-                                        e.name != commander?.name &&
-                                        (e.leadershipSkills?.commander ?? false) &&
-                                        (e.keywords?.contains("Partner") ?? false) &&
-                                        setEquals(e.colorIdentity.map((e) => ManaColor.fromStr(e)).toSet(), Deck.getColorSet(deck)),
-                                  )
+                                  .where((e) =>
+                                      e.name != commander?.name &&
+                                      (e.leadershipSkills?.commander ?? false) &&
+                                      (e.keywords?.contains("Partner") ?? false))
                                   .take(5);
                             },
                             fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) => TextField(
@@ -439,6 +447,7 @@ class _DeckPageState extends State<DeckPage> {
                                 await setCardCommander(oldCommander, false);
                               }
                               await setCardCommander(commanderPartner, true);
+                              setDeckColorsByCommanders();
                               setState(() {});
                               await save();
                             },
