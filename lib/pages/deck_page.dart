@@ -643,8 +643,21 @@ class _DeckPageState extends State<DeckPage> {
                                 textAlign: TextAlign.center,
                               ),
                             ),
-                            for (var (index, line) in value.split('\n').indexed)
-                              if (!(result?[index] ?? true)) Text(line),
+                            Expanded(
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const SizedBox(
+                                      width: double.infinity,
+                                      height: 0,
+                                    ),
+                                    for (var (index, line) in value.split('\n').indexed)
+                                      if (!(result?[index] ?? true)) Text(line),
+                                  ],
+                                ),
+                              ),
+                            )
                           ],
                         )
                       : const Column(
