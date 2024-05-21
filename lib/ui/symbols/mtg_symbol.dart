@@ -73,7 +73,7 @@ class MtgSymbol extends StatelessWidget {
         return const Color.fromARGB(255, 127, 175, 145);
       default:
     }
-    if (code == "t" || int.tryParse(code) != null) {
+    if (code == "t" || code == "c" || int.tryParse(code) != null) {
       return const Color.fromARGB(255, 202, 193, 190);
     }
     return null;
@@ -97,7 +97,7 @@ class MtgSymbol extends StatelessWidget {
         return const Color.fromARGB(255, 0, 21, 10);
       default:
     }
-    if (code == "t" || int.tryParse(code) != null) {
+    if (code == "t" || code == "c" || int.tryParse(code) != null) {
       return const Color.fromARGB(255, 18, 11, 13);
     }
     return null;

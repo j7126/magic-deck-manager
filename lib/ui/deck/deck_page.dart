@@ -20,8 +20,8 @@
 
 import 'dart:math';
 import 'package:collection/collection.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_enhanced_flexible_space_bar/flutter_enhanced_flexible_space_bar.dart';
 import 'package:gap/gap.dart';
 import 'package:keyrune_icons_flutter/keyrune_icons_flutter.dart';
 import 'package:magic_deck_manager/datamodel/color.dart';
@@ -47,7 +47,7 @@ class DeckPage extends StatefulWidget {
   State<DeckPage> createState() => _DeckPageState();
 }
 
-class _DeckPageState extends State<DeckPage> {
+class _DeckPageState extends State<DeckPage> with TickerProviderStateMixin {
   Deck? deck;
   DeckCards? deckCards;
   bool ready = false;
@@ -63,6 +63,7 @@ class _DeckPageState extends State<DeckPage> {
 
   late ScrollController _scrollController;
   late TextEditingController _searchFieldController;
+  late final TabController _tabController;
 
   void setup() async {
     if (widget.uuid != null) {
@@ -761,8 +762,20 @@ class _DeckPageState extends State<DeckPage> {
   void initState() {
     _searchFieldController = TextEditingController();
     _scrollController = ScrollController();
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+    );
     setup();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _searchFieldController.dispose();
+    _scrollController.dispose();
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -776,70 +789,108 @@ class _DeckPageState extends State<DeckPage> {
     }
 
     return Scaffold(
-      floatingActionButton: ready
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                addCard();
-              },
-              icon: const Icon(Icons.add),
-              label: const Text("Add card"),
-            )
-          : null,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: bgGradient,
-          color: bgColor,
-        ),
-        child: Stack(
-          children: [
-            if (!ready)
-              Center(
-                child: LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints bc) {
-                    var size = min(bc.maxHeight, bc.maxWidth) * 0.5;
-                    return Opacity(
-                      opacity: 0.3,
-                      child: Column(
-                        children: [
-                          const Spacer(),
-                          Icon(
-                            CustomIcons.deck_outlined,
-                            size: size,
-                          ),
-                          const Spacer(),
-                        ],
-                      ),
-                    );
-                  },
+      appBar: ready
+          ? AppBar(
+              scrolledUnderElevation: 4,
+              shadowColor: Theme.of(context).colorScheme.shadow,
+              titleSpacing: 4.0,
+              title: !ready
+                  ? Container()
+                  : Row(
+                      children: [
+                        Expanded(
+                          child: deck?.name.isEmpty ?? true
+                              ? const Opacity(
+                                  opacity: 0.4,
+                                  child: Text(
+                                    'Unnamed deck',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                )
+                              : Text(
+                                  deck?.name ?? '',
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                        ),
+                        if (commander == null)
+                          Row(
+                            children: [
+                              const Icon(
+                                CustomIcons.cards_outlined,
+                                size: 20.0,
+                              ),
+                              const Gap(4.0),
+                              Text(
+                                deckCards?.cards.entries.map((e) => e.key.qty).sum.toString() ?? '',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ],
+                          )
+                      ],
+                    ),
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  decoration: BoxDecoration(
+                    gradient: bgGradient,
+                    color: bgColor,
+                  ),
                 ),
               ),
-            CustomScrollView(
-              controller: _scrollController,
-              slivers: <Widget>[
-                if (ready)
-                  SliverAppBar(
-                    pinned: true,
-                    expandedHeight: 132.0,
-                    scrolledUnderElevation: 4,
-                    shadowColor: Theme.of(context).colorScheme.shadow,
-                    titleSpacing: 4.0,
-                    title: !ready
-                        ? Container()
-                        : deck?.name.isEmpty ?? true
-                            ? const Opacity(
-                                opacity: 0.4,
-                                child: Text('Unnamed deck'),
-                              )
-                            : Text(deck?.name ?? ''),
-                    flexibleSpace: EnhancedFlexibleSpaceBar(
-                      background: Container(
-                        decoration: BoxDecoration(
-                          gradient: bgGradient,
-                          color: bgColor,
-                        ),
+              actions: [
+                PopupMenuButton(
+                  itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+                    PopupMenuItem(
+                      onTap: editDeck,
+                      child: const Row(
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(right: 12.0),
+                            child: Icon(Icons.edit),
+                          ),
+                          Text('Edit Deck'),
+                        ],
                       ),
-                      expandedBackground: Padding(
-                        padding: const EdgeInsets.only(left: 16.0),
+                    ),
+                    PopupMenuItem(
+                      onTap: exportDeck,
+                      child: const Row(
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(right: 12.0),
+                            child: Icon(Icons.publish_rounded),
+                          ),
+                          Text('Export Deck List'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      onTap: importDeck,
+                      child: const Row(
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(right: 12.0),
+                            child: Icon(Icons.download_rounded),
+                          ),
+                          Text('Import Deck List'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: Container(),
+                ),
+              ],
+              bottom: PreferredSize(
+                preferredSize: Size.fromHeight(44 + (commander != null ? 40.0 : 0.0)),
+                child: Column(
+                  children: [
+                    if (commander != null)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16.0, bottom: 4.0),
                         child: Row(
                           children: [
                             if (deck?.format == "Commander" && commander?.name != null)
@@ -892,59 +943,94 @@ class _DeckPageState extends State<DeckPage> {
                           ],
                         ),
                       ),
+                    const Gap(2.0),
+                    TabBar(
+                      controller: _tabController,
+                      indicatorColor: Colors.transparent,
+                      dividerColor: Colors.transparent,
+                      tabs: const [
+                        Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(CustomIcons.cards_filled),
+                              Gap(8.0),
+                              Text('Cards'),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.pie_chart),
+                              Gap(8.0),
+                              Text('Insights'),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    actions: [
-                      PopupMenuButton(
-                        itemBuilder: (BuildContext context) => <PopupMenuEntry>[
-                          PopupMenuItem(
-                            onTap: editDeck,
-                            child: const Row(
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.only(right: 12.0),
-                                  child: Icon(Icons.edit),
-                                ),
-                                Text('Edit Deck'),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem(
-                            onTap: exportDeck,
-                            child: const Row(
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.only(right: 12.0),
-                                  child: Icon(Icons.publish_rounded),
-                                ),
-                                Text('Export Deck List'),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem(
-                            onTap: importDeck,
-                            child: const Row(
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.only(right: 12.0),
-                                  child: Icon(Icons.download_rounded),
-                                ),
-                                Text('Import Deck List'),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: Container(),
-                      ),
-                    ],
-                    bottom: PreferredSize(
-                      preferredSize: const Size.fromHeight(40),
-                      child: TextField(
+                  ],
+                ),
+              ),
+            )
+          : const PreferredSize(
+              preferredSize: Size.fromHeight(40),
+              child: LinearProgressIndicator(),
+            ),
+      floatingActionButton: ready
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                addCard();
+              },
+              icon: const Icon(Icons.add),
+              label: const Text("Add card"),
+            )
+          : null,
+      body: Stack(
+        children: [
+          if (!ready)
+            Center(
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints bc) {
+                  var size = min(bc.maxHeight, bc.maxWidth) * 0.5;
+                  return Opacity(
+                    opacity: 0.3,
+                    child: Column(
+                      children: [
+                        const Spacer(),
+                        Icon(
+                          CustomIcons.deck_outlined,
+                          size: size,
+                        ),
+                        const Spacer(),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          if (ready)
+            Container(
+              decoration: BoxDecoration(
+                gradient: bgGradient,
+                color: bgColor,
+              ),
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  Column(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      TextField(
                         controller: _searchFieldController,
                         decoration: InputDecoration(
-                          hintText: "Search",
+                          hintText: "Filter Cards",
                           border: const UnderlineInputBorder(),
                           prefixIcon: const Icon(Icons.search),
                           isDense: true,
@@ -992,56 +1078,142 @@ class _DeckPageState extends State<DeckPage> {
                           }
                         }),
                       ),
-                    ),
+                      Expanded(
+                        child: GridView.extent(
+                          maxCrossAxisExtent: 300,
+                          childAspectRatio: 488 / 680,
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
+                          padding: const EdgeInsets.only(left: 12.0, right: 12.0, bottom: 12.0, top: 12.0),
+                          children: [
+                            for (MapEntry<DeckCard, CardSet> card in deckCards?.cards.entries.sorted((a, b) {
+                                  if (a.key.commander != b.key.commander) {
+                                    return (b.key.commander ? 1 : 0) - (a.key.commander ? 1 : 0);
+                                  }
+                                  return a.value.name.toLowerCase().compareTo(b.value.name.toLowerCase());
+                                }) ??
+                                [])
+                              if ((_searchFieldController.text.isEmpty ||
+                                      Service.dataLoader.searchableCards.data
+                                          .firstWhere((e) => e.name == card.value.name)
+                                          .cardSearchString
+                                          .contains(SearchableCard.filterStringForSearch(_searchFieldController.text))) &&
+                                  (filter.isEmpty || card.value.types.contains(filter)))
+                                CardPreview(
+                                  key: Key(card.key.uuid),
+                                  card: card.value,
+                                  qty: card.key.qty,
+                                  dialogPreview: true,
+                                  isCommander: card.key.commander,
+                                  qtyChanged: (var val) async {
+                                    if (deckCards != null) {
+                                      await deckCards?.setQty(card.key.uuid, val);
+                                      getCommanders();
+                                      setState(() {});
+                                      save();
+                                    }
+                                  },
+                                ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                if (!ready)
-                  const SliverToBoxAdapter(
-                    child: LinearProgressIndicator(),
-                  ),
-                if (ready)
-                  SliverPadding(
-                    padding: const EdgeInsets.all(16.0),
-                    sliver: SliverGrid.extent(
-                      maxCrossAxisExtent: 300,
-                      childAspectRatio: 488 / 680,
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      children: [
-                        for (MapEntry<DeckCard, CardSet> card in deckCards?.cards.entries.sorted((a, b) {
-                              if (a.key.commander != b.key.commander) {
-                                return (b.key.commander ? 1 : 0) - (a.key.commander ? 1 : 0);
+                  LayoutBuilder(builder: (context, constraints) {
+                    var minDimension = min(constraints.maxWidth, constraints.maxHeight);
+                    return SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          Builder(builder: (context) {
+                            var chartSections = <PieChartSectionData>[];
+                            var total = 0.0;
+                            for (var color in [
+                              ManaColor.black,
+                              ManaColor.green,
+                              ManaColor.red,
+                              ManaColor.blue,
+                              ManaColor.white,
+                              ManaColor.none,
+                            ]) {
+                              var colorstr = color == ManaColor.none ? "C" : ManaColor.getString(color);
+                              var val = deckCards?.cards.entries
+                                  .where(
+                                    (x) =>
+                                        !x.value.types.contains("Land") && x.value.colorIdentity.contains(colorstr == "C" ? "" : colorstr),
+                                  )
+                                  .map((e) => e.key.qty)
+                                  .sum
+                                  .toDouble();
+                              if (val != null && val > 0) {
+                                total += val;
+                                chartSections.add(PieChartSectionData(
+                                  color: MtgSymbol.mapSymbolBackgroundColor(colorstr),
+                                  badgeWidget: MtgSymbol(symbol: colorstr),
+                                  titleStyle: TextStyle(
+                                    color: MtgSymbol.mapSymbolForegroundColor(colorstr),
+                                  ),
+                                  value: val,
+                                ));
                               }
-                              return a.value.name.toLowerCase().compareTo(b.value.name.toLowerCase());
-                            }) ??
-                            [])
-                          if ((_searchFieldController.text.isEmpty ||
-                                  Service.dataLoader.searchableCards.data
-                                      .firstWhere((e) => e.name == card.value.name)
-                                      .cardSearchString
-                                      .contains(SearchableCard.filterStringForSearch(_searchFieldController.text))) &&
-                              (filter.isEmpty || card.value.types.contains(filter)))
-                            CardPreview(
-                              key: Key(card.key.uuid),
-                              card: card.value,
-                              qty: card.key.qty,
-                              dialogPreview: true,
-                              isCommander: card.key.commander,
-                              qtyChanged: (var val) async {
-                                if (deckCards != null) {
-                                  await deckCards?.setQty(card.key.uuid, val);
-                                  getCommanders();
-                                  setState(() {});
-                                  save();
-                                }
-                              },
-                            ),
-                      ],
-                    ),
-                  ),
-              ],
+                            }
+                            return Card(
+                              margin: const EdgeInsets.all(8.0),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          "Card Colors",
+                                          style: TextStyle(fontSize: 24.0),
+                                        ),
+                                        for (var section in chartSections)
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 8.0),
+                                            child: Row(
+                                              children: [
+                                                const Gap(4.0),
+                                                SizedBox(
+                                                  width: 24.0,
+                                                  height: 24.0,
+                                                  child: section.badgeWidget ?? Container(),
+                                                ),
+                                                const Gap(8.0),
+                                                Text(
+                                                  "${(section.value / total * 100).toStringAsFixed(1)}%",
+                                                  style: const TextStyle(fontSize: 20.0),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                    const Spacer(),
+                                    SizedBox(
+                                      width: minDimension / 3,
+                                      height: minDimension / 3,
+                                      child: PieChart(
+                                        PieChartData(
+                                          sections: chartSections,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+              ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
