@@ -18,7 +18,7 @@ A simple app for managing your [Magic: The Gathering](https://magic.wizards.com/
 
 ## Installing
 
-Currently builds are provided for android and linux.
+Currently builds are provided for android.
 
 ### Android
 
@@ -28,6 +28,12 @@ Magic Deck Manager is available in my [F-Droid](https://f-droid.org/) repo at [f
 
 Alternatly, you can download the apk from the [releases page](https://github.com/j7126/magic-deck-manager/releases) on github.
 
-### Linux
 
-Download the latest build from the [releases page](https://github.com/j7126/magic-deck-manager/releases).
+## License
+
+Copyright © 2024 Jefferey Neuffer.
+
+This program is free software: licensed under the terms of the GNU Affero General Public License.
+
+Wizards of the Coast, Magic: The Gathering, and their logos, in addtion to the literal and graphical information presented about Magic: The Gathering, including card images, names, mana symbols and other associated metadata and images, is copyright Wizards of the Coast, LLC. All rights reserved. This app is not produced by or endorsed by Wizards of the Coast. 
+
